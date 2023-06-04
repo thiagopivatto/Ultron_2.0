@@ -12,6 +12,44 @@ const fs = require("fs-extra")
 const path = require("path")
 const {botAlterarLimitador, botInfo, botAlterarLimiteDiario, botQtdLimiteDiario, botAlterarLimitarMensagensPv, botAlterarAutoSticker, botAlterarAntitrava, botAlterarPvLiberado} = require('../lib/bot');
 const { ClientRequest } = require('http');
+const cron = require('node-cron');
+let cronEnabled = false; // Estado inicial do cron
+
+        // Função para habilitar o cron
+        function habilitarCron(client, ownerNumber) {
+            cronEnabled = true;
+            client.sendText(ownerNumber + '@c.us', "Cron habilitado!");
+        }
+        
+        // Função para desabilitar o cron
+        function desabilitarCron(client, ownerNumber) {
+            cronEnabled = false;
+            client.sendText(ownerNumber + '@c.us', "Cron desabilitado!");
+        }
+        
+        // Função para agendar o cron
+        async function agendarCron(client, sender, ownerNumber, msgs_texto) {
+            cron.schedule('*/15 * * * * *', async () => {
+            if (cronEnabled) {
+                limparChats(client, sender, ownerNumber, msgs_texto);
+            }
+            });
+        }
+
+        // Função para limpar os chats
+        async function limparChats(client, sender, ownerNumber, msgs_texto) {
+            try {
+            const chats = await client.getAllChats();
+            for (const c of chats) {
+                if (c.id.match(/@c.us/g) && c.id !== sender.id) {
+                await client.deleteChat(c.id);
+                }
+            }
+            await client.sendText(ownerNumber + '@c.us', msgs_texto.admin.limpar.limpar_sucesso);
+            } catch (err) {
+            console.error('Erro ao limpar os chats:', err);
+            }
+        }
 
 module.exports = admin = async(client,message) => {
     try{
@@ -31,6 +69,14 @@ module.exports = admin = async(client,message) => {
         switch(command){
             case "!admin":
                 await client.sendText(from, menu.menuAdmin())
+                break
+
+            case '!alternarcron':
+                if (cronEnabled) {
+                    desabilitarCron(client, ownerNumber);
+                } else {
+                    habilitarCron(client, ownerNumber);
+                }
                 break
 
             case "!infocompleta":

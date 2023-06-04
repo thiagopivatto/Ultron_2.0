@@ -5,9 +5,9 @@ const { criarTexto, primeiraLetraMaiuscula, erroComandoMsg, removerNegritoComand
 const path = require("path")
 const api = require('../lib/api')
 
-module.exports = diversao = async (client, message, insert, response, simih, samih, samih2) => {
+module.exports = diversao = async (client, message, insert, response) => {
     try {
-        const { id, from, sender, isGroupMsg, chat, caption, quotedMsg, quotedMsgObj, mentionedJidList, /*body*/ } = message
+        const { id, from, sender, isGroupMsg, chat, caption, quotedMsg, quotedMsgObj, mentionedJidList, body } = message
         const commands = caption || body || ''
         var command = commands.toLowerCase().split(' ')[0] || ''
         command = removerNegritoComando(command)
@@ -19,48 +19,31 @@ module.exports = diversao = async (client, message, insert, response, simih, sam
         const isGroupAdmins = isGroupMsg ? groupAdmins.includes(sender.id) : false
         const isBotGroupAdmins = isGroupMsg ? groupAdmins.includes(botNumber + '@c.us') : false
         const groupOwner = isGroupMsg ? chat.groupMetadata.owner : ''
-        const {simih} = require('../lib/api')
-        const openai = require('openai');
 
-        const { insert, response } = require('../lib/simi');
-        const samih = JSON.parse(fs.readFileSync('./database/json/simi.json'));
-        const samih2 = JSON.parse(fs.readFileSync('./lib/simi.json'));
-        // const simih = async (text) => {
-        //     try {
-        //         const sami = await fetch(`https://api.simsimi.net/v2/?text=${text}&lc=pt`, {method: 'GET'})
-        //         const res = await sami.json()
-        //         return res.success
-        //     } catch {
-        //         return 
-        //     }
-        // }
-
-
-        conn.ev.on('messages.upsert', async ({ messages }) => {
-        try {
-            // DECLARAÇÕES BOT
-            const info = messages ? messages[0]: messages[1]
-            if (!info.message) return 
-            saveState()
-            if (info.message.protocolMessage) return 
-            if(info.message > 1000) return
-            await conn.sendReadReceipt(info.key.remoteJid, info.key.participant, [info.key.id])
-            if (info.key && info.key.remoteJid == 'status@broadcast') return
-            const altpdf = Object.keys(info.message)
-            const type = altpdf[0] == 'senderKeyDistributionMessage' ? altpdf[1] == 'messageContextInfo' ? altpdf[2] : altpdf[1] : altpdf[0]
-            from = info.key.remoteJid
-            const isGroup = from.endsWith('@g.us')
-            var body = (type === 'conversation') ? info.message.conversation : (type === 'imageMessage') ? info.message.imageMessage.caption : (type === 'videoMessage') ? info.message.videoMessage.caption : (type === 'extendedTextMessage') ? info.message.extendedTextMessage.text : (type === 'buttonsResponseMessage') ? info.message.buttonsResponseMessage.selectedButtonId : (type === 'listResponseMessage') ? info.message.listResponseMessage.singleSelectReply.selectedRowId : (type === 'templateButtonReplyMessage') ? info.message.templateButtonReplyMessage.selectedId : ''
-            const args = body.trim().split(/ +/).slice(1)
-            const isCmd = body.startsWith(prefix)
-            const command = isCmd ? body.slice(1).trim().split(/ +/).shift().toLocaleLowerCase() : null
-            bady = (type === 'conversation') ? info.message.conversation : (type == 'imageMessage') ? info.message.imageMessage.caption : (type == 'videoMessage') ? info.message.videoMessage.caption : (type == 'extendedTextMessage') ? info.message.extendedTextMessage.text : (info.message.listResponseMessage && info.message.listResponseMessage.singleSelectReply.selectedRowId) ? info.message.listResponseMessage.singleSelectReply.selectedRowId: ''
-            budy = (type === 'conversation') ? info.message.conversation : (type === 'extendedTextMessage') ? info.message.extendedTextMessage.text : ''
-            const isSimi = isGroup ? samih.includes(from) : false
-            const isSimi2 = isGroup ? samih2.includes(from) : false
-            // DECLARAÇÕES BOT
+          conn.ev.on('messages.upsert', async ({ messages }) => {
+            try {
+                // DECLARAÇÕES BOT
+                const info = messages ? messages[0]: messages[1]
+                if (!info.message) return 
+                saveState()
+                if (info.message.protocolMessage) return 
+                if(info.message > 1000) return
+                await conn.sendReadReceipt(info.key.remoteJid, info.key.participant, [info.key.id])
+                if (info.key && info.key.remoteJid == 'status@broadcast') return
+                const altpdf = Object.keys(info.message)
+                const type = altpdf[0] == 'senderKeyDistributionMessage' ? altpdf[1] == 'messageContextInfo' ? altpdf[2] : altpdf[1] : altpdf[0]
+                from = info.key.remoteJid
+                const isGroup = from.endsWith('@g.us')
+                var body = (type === 'conversation') ? info.message.conversation : (type === 'imageMessage') ? info.message.imageMessage.caption : (type === 'videoMessage') ? info.message.videoMessage.caption : (type === 'extendedTextMessage') ? info.message.extendedTextMessage.text : (type === 'buttonsResponseMessage') ? info.message.buttonsResponseMessage.selectedButtonId : (type === 'listResponseMessage') ? info.message.listResponseMessage.singleSelectReply.selectedRowId : (type === 'templateButtonReplyMessage') ? info.message.templateButtonReplyMessage.selectedId : ''
+                const args = body.trim().split(/ +/).slice(1)
+                const isCmd = body.startsWith(prefix)
+                const command = isCmd ? body.slice(1).trim().split(/ +/).shift().toLocaleLowerCase() : null
+                bady = (type === 'conversation') ? info.message.conversation : (type == 'imageMessage') ? info.message.imageMessage.caption : (type == 'videoMessage') ? info.message.videoMessage.caption : (type == 'extendedTextMessage') ? info.message.extendedTextMessage.text : (info.message.listResponseMessage && info.message.listResponseMessage.singleSelectReply.selectedRowId) ? info.message.listResponseMessage.singleSelectReply.selectedRowId: ''
+                budy = (type === 'conversation') ? info.message.conversation : (type === 'extendedTextMessage') ? info.message.extendedTextMessage.text : ''
+                // DECLARAÇÕES BOT
         
             switch (command) {
+
                 case '!detector':
                     if (!isGroupMsg) return await client.reply(from, msgs_texto.permissao.grupo, id)
                     if (!quotedMsg) return await client.reply(from, erroComandoMsg(command), id)
@@ -184,35 +167,6 @@ module.exports = diversao = async (client, message, insert, response, simih, sam
                     await client.reply(from, respostaTexto, idResposta)
                     break
     
-                case '!top5':
-                    if (!isGroupMsg) return await client.reply(from, msgs_texto.permissao.grupo, id)
-                    if (args.length === 1) return await client.reply(from, erroComandoMsg(command), id)
-                    var temaRanking = body.slice(6).trim(), idParticipantesAtuais = await client.getGroupMembersId(groupId)
-                    if (idParticipantesAtuais.length < 5) return await client.reply(from, msgs_texto.diversao.top5.erro_membros, id)
-                    var respostaTexto = criarTexto(msgs_texto.diversao.top5.resposta_titulo, temaRanking)
-                    for (let i = 0; i < 5; i++) {
-                        var medalha = ""
-                        switch (i + 1) {
-                            case 1:
-                                medalha = '🥇'
-                                break
-                            case 2:
-                                medalha = '🥈'
-                                break
-                            case 3:
-                                medalha = '🥉'
-                                break
-                            default:
-                                medalha = ''
-                        }
-                        var indexAleatorio = Math.floor(Math.random() * idParticipantesAtuais.length)
-                        var membroSelecionado = idParticipantesAtuais[indexAleatorio]
-                        respostaTexto += criarTexto(msgs_texto.diversao.top5.resposta_itens, medalha, i + 1, membroSelecionado.replace(/@c.us/g, ''))
-                        idParticipantesAtuais.splice(idParticipantesAtuais.indexOf(membroSelecionado), 1)
-                    }
-                    await client.sendTextWithMentions(from, respostaTexto)
-                    break
-    
                 case '!par':
                     if (!isGroupMsg) return await client.reply(from, msgs_texto.permissao.grupo, id)
                     if (mentionedJidList.length !== 2) return await client.reply(from, erroComandoMsg(command), id)
@@ -327,59 +281,7 @@ module.exports = diversao = async (client, message, insert, response, simih, sam
                     var respostaTexto = criarTexto(msgs_texto.diversao.fernandometro.resposta, respostas[indexAleatorio])
                     await client.reply(from, respostaTexto, idResposta)
                     break
-    
-                case '!simi':
-                    if(isSimi) return await client.sendTextWithMentions('Desativado')
-                    sduy = args.join(" ")
-                    data = await fetchJson(`https://api.simsimi.net/v2/?text=${sduy}&lc=pt`, {method: 'get'})
-                    simi = `${data.success}`  
-                    await client.sendText(simi)
-                    break
-    
-                case '!simih':
-                    if (args.length < 1) return await client.sendTextWithMentions('Hmmmm')
-                    if (Number(args[0]) === 1) {
-                    if (isSimi) return await client.sendTextWithMentions('O modo Simi está ativo')
-                    samih.push(from)
-                    fs.writeFileSync('./database/json/simi.json', JSON.stringify(samih))
-                    await client.sendTextWithMentions('Ativado com sucesso o modo simi neste grupo 😗')
-                    } else if (Number(args[0]) === 0) {
-                    if(!isSimi) return await client.sendTextWithMentions('Já está Desativado.')
-                    samih.splice(from, 1)
-                    fs.writeFileSync('./database/json/simi.json', JSON.stringify(samih))
-                    await client.sendTextWithMentions(from, 'Desativado modo simi com sucesso neste grupo 😡️')
-                    } else {
-                    await client.sendTextWithMentions(from, '1 para ativar, 0 para desativar, lerdao vc em KKKKK')
-                    }
-                    break
-    
-                case '!simih2':
-                    if (args.length < 1) return await client.sendTextWithMentions(from, 'Hmmmm')
-                    if (Number(args[0]) === 1) {
-                    if (isSimi2) return await client.sendTextWithMentions(from, 'O modo Simi está ativo')
-                    samih2.push(from)
-                    fs.writeFileSync('./database/db/simi2.json', JSON.stringify(samih2))
-                    await client.sendTextWithMentions(from, 'Ativado com sucesso o modo simi neste grupo 😗, Este simih2 ele aprende as respostas e perguntas das pessoas, conforme vai falando, por isso, só recomendo utilizar ele no termux, pois no site ou lugar diferente do termux que você utilizar, ele não vai armazenar os dados nescessarios')
-                    } else if (Number(args[0]) === 0) {
-                    if(!isSimi2) return await client.sendTextWithMentions(from, 'Já está Desativado.')
-                    samih2.splice(from, 1)
-                    fs.writeFileSync('./database/db/simi2.json', JSON.stringify(samih2))
-                    await client.sendTextWithMentions(from, 'Desativado modo simi com sucesso neste grupo 😡️')
-                    } else {
-                    await client.sendTextWithMentions(from, '1 para ativar, 0 para desativar, lerdao vc em KKKKK')
-                    }
-                    break
 
-                case '!falae':
-                    if (!quotedMsg && mentionedJidList.length === 0) return await client.reply(from, erroComandoMsg(command), id)    
-                    try{
-                        var usuarioTexto = body.slice(10).trim() = await api.obterResultadoAI(usuarioTexto)
-                        respostaAI = criarTexto(msgs_texto.diversao.falae.resposta)
-                        await client.reply(from, respostaAI, id)
-                    } catch(err){
-                        await client.reply(from, err.message ,id)
-                    }   
-                    break
                     
                 // EM DESENVOLVIMENTO - INICIO
                 case "!vddoudsf":
@@ -444,35 +346,6 @@ module.exports = diversao = async (client, message, insert, response, simih, sam
             }
         } catch (err) {
             throw err
-        }
-
-        switch(testat){
-
-        }
-        //================(SIMIH-2)=================\\
-
-        if (isSimi2 && !isCmd && isGroup) {
-        if (type == 'conversation' || type == 'extendedTextMessage') {
-        if (info.key.fromMe) return
-        if (type == 'extendedTextMessage' && prefix.includes(info.message.extendedTextMessage.contextInfo.quotedMessage.conversation[0])) return
-        insert(type, info)
-        const sami = await response(budy)
-        
-        if (sami) conn.sendMessage(from, {text: sami, thumbnail: fs.readFileSync('./logos/logo2.jpg', 'base64')}, {quoted: info});
-        }
-        }
-        
-        //===============(SIMIH-1)===============\\
-            
-        if (isGroup && isSimi && budy != undefined) {
-        if(type == 'imageMessage') return 
-        if(type == 'audioMessage') return 
-        if(type == 'stickerMessage') return   
-        if(info.key.fromMe) return 
-        console.log(budy)
-        muehe = await simih(budy)
-        console.log(muehe)
-        reply(muehe)
         }
 
         })

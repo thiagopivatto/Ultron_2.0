@@ -6,6 +6,8 @@ const {criarTexto, erroComandoMsg, obterNomeAleatorio, removerNegritoComando} = 
 const path = require('path')
 const api = require("../lib/api")
 const {converterMp4ParaMp3} = require("../lib/conversao")
+const {default: PQueue} = require('p-queue')
+const filaImg = new PQueue({concurrency: 2, timeout: 60000})
 
 module.exports = utilidades = async(client,message) => {
     try{
@@ -16,7 +18,38 @@ module.exports = utilidades = async(client,message) => {
         const args =  commands.split(' ')
         const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
 
-        switch(command){      
+        switch(command){  
+            
+            case '!chat':
+                const userMessage = message.body.replace('!chat', '').trim();
+                const answer = await api.callChatGPT(userMessage);
+                const respostaText = `${answer}`;
+                var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
+                await client.sendText(from, respostaTexto);
+                break       
+                
+            case '!dalle':
+                if(quotedMsg || type != "chat") return await client.reply(from, erroComandoMsg(command) , id)
+                var usuarioQuantidadeFotos = parseInt(args[1]);
+                qtdFotos = isNaN(usuarioQuantidadeFotos) ? 1 : Math.min(Math.max(usuarioQuantidadeFotos, 1), 5);
+                textoImagem = args.slice(2).join(" ").trim();
+                usuarioQuantidadeFotos = qtdFotos
+                if (!textoImagem) return await client.reply(from, erroComandoMsg(command), id)
+                if (textoImagem.length > 120) return await client.reply(from, msgs_texto.utilidades.dalle.tema_longo , id)
+                await filaImg.add(async ()=>{
+                try{
+                    var resultadosImagens = [await api.generateDALLEImage(textoImagem, qtdFotos)];
+                    for(let imagem of resultadosImagens){
+                        client.sendFileFromUrl(from, imagem , "foto.png" , "", (qtdFotos == 1) ? id : "").catch(async ()=>{
+                            await client.sendText(from, msgs_texto.utilidades.dalle.erro_imagem)
+                        })
+                    }
+                } catch(err){
+                    await client.reply(from, err.message, id)
+                }
+            })
+            break
+
             case "!tabela":
                 var tabela = await api.obterTabelaNick()
                 await client.reply(from, criarTexto(msgs_texto.utilidades.tabela.resposta, tabela), id)

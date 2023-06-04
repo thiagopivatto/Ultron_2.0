@@ -6,6 +6,10 @@ node_modules
 *.data.json
 # Ignorar package-lock
 package-lock.json
+# Ignorar patches.ignore.data.json
+patches.ignore.data.json
+# Ignorar session.data.json
+session.data.json
 #Ignorar .env
 *.env
 #Ignorar arquivo de teste
@@ -26,7 +30,6 @@ media/videos/*.jpg
 database/db/*.db
 database/json/bot.json
 database/json/antiflood.json
-database/json/simi.json
 # managed by open-wa. see: https://github.com/open-wa/wa-automate-nodejs/issues/1632
 **.data.json
 # end managed by open-wa. see: https://github.com/open-wa/wa-automate-nodejs/issues/1632

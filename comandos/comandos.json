@@ -17,7 +17,9 @@
         "!anime",
         "!animelanc",
         "!qualmusica",
-        "!acao"
+        "!acao",
+        "!chat",
+        "!dalle"
     ],
     "info":[
         "!ajuda","!menu",
@@ -97,7 +99,6 @@
         "!ppt",
         "!gadometro",
         "!bafometro",
-        "!top5",
         "!par",
         "!fch",
         "!malacos",
@@ -106,10 +107,7 @@
         "!gato",
         "!jacometro",
         "!bolametro",
-        "!fernandometro",
-        "!simi",
-        "!simih",
-        "!falae"
+        "!fernandometro"
     ],
     "admin":[
         "!desbloquear",
@@ -120,6 +118,7 @@
         "!dcmdglobal",
         "!sairgrupos",
         "!infocompleta",
+        "!alternarcron",
         "!entrargrupo",
         "!bctodos",
         "!bccontatos",

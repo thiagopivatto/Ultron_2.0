@@ -15,6 +15,12 @@ const {botStart} = require('./lib/bot')
 const {verificarEnv} = require('./lib/env')
 // const {insert, response} = require('./lib/api.js')
 
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const { OpenAIApi } = require('openai');
+const cron = require('node-cron');
+
 const start = async (client = new Client()) => {
     try{
         //VERIFICA SE É NECESSÁRIO CRIAR ALGUM TIPO DE ARQUIVO NECESSÁRIO
@@ -54,6 +60,52 @@ const start = async (client = new Client()) => {
                 if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus()
             })
 
+            // Configurações do servidor Express
+            const app = express();
+            app.use(bodyParser.urlencoded({ extended: false }));
+            app.use(bodyParser.json());
+
+            // Crie uma instância do cliente OpenAI
+            const openaiClient = new OpenAIApi(process.env.OPENAI_API_KEY);
+
+            // Inicie o servidor
+            const port = 3000;
+            app.listen(port, () => {
+            });
+
+            // Rota para receber as mensagens do usuário
+            app.post('/mensagem', async (req, res) => {
+                try {
+                    const mensagem = req.body.mensagem;
+                
+                    // Chama o ChatGPT para obter a resposta
+                    const response = await callChatGPT(mensagem);
+                    const answer = response.choices[0].text;
+                
+                    // Envia a resposta ao usuário
+                    client.sendText(mensagem.from, answer);
+                    console.log(answer);
+                    res.json({ answer });
+                  } catch (error) {
+                    console.error(error);
+                    res.status(500).json({ error: 'Ocorreu um erro ao processar a mensagem.' });
+                  }
+                });
+                
+                // Função para fazer a chamada ao ChatGPT
+                async function callChatGPT(mensagem) {
+                  const params = {
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                      { role: 'system', content: 'Você é um assistente de bate-papo.' },
+                      { role: 'user', content: mensagem }
+                    ],
+                    max_tokens: 1000
+                  };
+                
+                  return await openaiClient.complete(params);
+                }
+
             // Ouvindo mensagens
             client.onMessage((async (message) => {
                 if(!await antiTrava(client,message)) return
@@ -78,9 +130,9 @@ const start = async (client = new Client()) => {
 
             // Ouvindo ligações recebidas
             client.onIncomingCall(( async (call) => {
-                await client.sendText(call.peerJid, msgs_texto.geral.sem_ligacoes).then(async ()=>{
-                    client.contactBlock(call.peerJid)
-                })
+            //    await client.sendText(call.peerJid, msgs_texto.geral.sem_ligacoes).then(async ()=>{
+            //        client.contactBlock(call.peerJid)
+            //    })
             }))
         } 
     } catch(err) {
