@@ -11,6 +11,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "1.1.0",
+    "@google-cloud/text-to-speech": "^4.2.2",
     "@open-wa/wa-automate": "^4.66.3",
     "@open-wa/wa-decrypt": "4.4.0",
     "@vitalets/google-translate-api": "7.0.0",
@@ -44,13 +45,14 @@
     "node-cron": "^3.0.2",
     "node-fetch": "^3.3.1",
     "node-gtts": "2.0.2",
-    "openai": "^3.1.0",
+    "openai": "^3.2.1",
     "p-queue": "6.6.2",
     "pretty-num": "0.5.0",
     "prompt": "1.1.0",
     "puppeteer": "^20.5.0",
     "tiktok-scraper": "1.4.36",
     "twitter-url-direct": "1.0.1",
+    "wa-sticker-formatter": "^4.4.4",
     "youtube-sr": "4.1.9",
     "ytdl-core": "4.10.0"
   },

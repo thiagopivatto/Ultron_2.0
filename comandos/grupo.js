@@ -26,7 +26,6 @@ module.exports = grupo = async(client,message) => {
         if (!isGroupMsg) return client.reply(from, msgs_texto.permissao.grupo, id)
 
         switch(command){
-
             case '!regras':
                 var grupoInfo = await client.getGroupInfo(groupId), grupoFoto = await client.getProfilePicFromServer(groupId), grupoDescricao = grupoInfo.description || msgs_texto.grupo.regras.sem_descrição
                 if(grupoFoto){

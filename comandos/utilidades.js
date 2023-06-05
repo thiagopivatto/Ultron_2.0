@@ -8,6 +8,15 @@ const api = require("../lib/api")
 const {converterMp4ParaMp3} = require("../lib/conversao")
 const {default: PQueue} = require('p-queue')
 const filaImg = new PQueue({concurrency: 2, timeout: 60000})
+const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
+const ttsClient = new TextToSpeechClient({
+    credentials: {
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    },
+  });
+const textoParaVoz = require('../lib/api.js').textoParaVoz;
+
 
 module.exports = utilidades = async(client,message) => {
     try{
@@ -17,39 +26,9 @@ module.exports = utilidades = async(client,message) => {
         command = removerNegritoComando(command)
         const args =  commands.split(' ')
         const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+        const { chatHistory } = require('../app');
 
         switch(command){  
-            
-            case '!chat':
-                const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await api.callChatGPT(userMessage);
-                const respostaText = `${answer}`;
-                var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
-                await client.sendText(from, respostaTexto);
-                break       
-                
-            case '!dalle':
-                if(quotedMsg || type != "chat") return await client.reply(from, erroComandoMsg(command) , id)
-                var usuarioQuantidadeFotos = parseInt(args[1]);
-                qtdFotos = isNaN(usuarioQuantidadeFotos) ? 1 : Math.min(Math.max(usuarioQuantidadeFotos, 1), 5);
-                textoImagem = args.slice(2).join(" ").trim();
-                usuarioQuantidadeFotos = qtdFotos
-                if (!textoImagem) return await client.reply(from, erroComandoMsg(command), id)
-                if (textoImagem.length > 120) return await client.reply(from, msgs_texto.utilidades.dalle.tema_longo , id)
-                await filaImg.add(async ()=>{
-                try{
-                    var resultadosImagens = [await api.generateDALLEImage(textoImagem, qtdFotos)];
-                    for(let imagem of resultadosImagens){
-                        client.sendFileFromUrl(from, imagem , "foto.png" , "", (qtdFotos == 1) ? id : "").catch(async ()=>{
-                            await client.sendText(from, msgs_texto.utilidades.dalle.erro_imagem)
-                        })
-                    }
-                } catch(err){
-                    await client.reply(from, err.message, id)
-                }
-            })
-            break
-
             case "!tabela":
                 var tabela = await api.obterTabelaNick()
                 await client.reply(from, criarTexto(msgs_texto.utilidades.tabela.resposta, tabela), id)
@@ -254,27 +233,45 @@ module.exports = utilidades = async(client,message) => {
                     client.reply(from, err.message, id)
                 }
                 break  
-            
+
             case '!voz':
-                var usuarioTexto = '', idMensagem = id
-                if (args.length === 1) {
-                    return client.reply(from, erroComandoMsg(command) ,id)
-                } else if(quotedMsg  && quotedMsg.type == 'chat'){
-                    usuarioTexto = (args.length == 2) ? quotedMsg.body : body.slice(8).trim()
+                let texto;
+                
+                if (quotedMsg && quotedMsg.type === 'chat') {
+                    texto = quotedMsg.body;
+                } else if (args.length >= 2) {
+                    texto = args.slice(1).join(' ');
                 } else {
-                    usuarioTexto = body.slice(8).trim()
+                    return client.reply(from, 'Você precisa fornecer um texto para gerar a voz.', id);
                 }
-                if (!usuarioTexto) return client.reply(from, msgs_texto.utilidades.voz.texto_vazio , id)
-                if (usuarioTexto.length > 50000) return client.reply(from, msgs_texto.utilidades.voz.texto_longo, id)
-                if(quotedMsg) idMensagem = quotedMsgObj.id
-                var idioma = body.slice(5, 7).toLowerCase()
-                try{
-                    var respostaAudio = await api.textoParaVoz(idioma, usuarioTexto)
-                    client.sendPtt(from, respostaAudio, idMensagem)
-                } catch(err){
-                    client.reply(from, err.message, id)
+                
+                let idioma = 'pt-BR'; // Definir o idioma padrão como pt-BR
+                
+                if (texto.includes(';')) {
+                    const [lang, ...textParts] = texto.split(';');
+                    idioma = lang.toLowerCase().trim(); // Extrair o idioma e remover espaços em branco
+                    texto = textParts.join(';').trim(); // Reunir o restante do texto
+                
+                    if (texto.length === 0) {
+                    return client.reply(from, 'Você precisa fornecer um texto para gerar a voz.', id);
+                    }
                 }
-                break
+                
+                const voiceOptions = {
+                    languageCode: idioma,
+                };
+                
+                try {
+                    const audioPath = await api.textoParaVoz(texto, voiceOptions);
+                    await client.sendPtt(from, audioPath);
+                    fs.unlinkSync(audioPath);
+                } catch (err) {
+                    console.error(err);
+                    return client.reply(from, 'Ocorreu um erro ao gerar o áudio.', id);
+                }
+                
+            break
+                  
 
             case '!falar':
                 var usuarioTexto = '', idMensagem = id
@@ -288,7 +285,6 @@ module.exports = utilidades = async(client,message) => {
                 if (!usuarioTexto) return client.reply(from, msgs_texto.utilidades.voz.texto_vazio , id)
                 if (usuarioTexto.length > 100000) return client.reply(from, msgs_texto.utilidades.voz.texto_longo, id)
                 if(quotedMsg) idMensagem = quotedMsgObj.id
-                var idioma = body.slice(5, 7).toLowerCase()
                 try{
                     var respostaAudio = await api.textoParaVozIBM(idioma, usuarioTexto)
                     client.sendPtt(from, respostaAudio, idMensagem)
@@ -322,55 +318,91 @@ module.exports = utilidades = async(client,message) => {
                 }
                 break
 
-                // NOVOS COMANDOS
+            // NOVOS COMANDOS
+            //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//
+            case '!chat':
+                const userMessage = message.body.replace('!chat', '').trim();
+                const answer = await api.callChatGPT(userMessage);
+                const respostaText = `${answer}`;
+                var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
+                await client.sendText(from, respostaTexto);
+                break
 
-                case '!noticiasus':
-                    try {
-                        var listaNoticias = await api.obterNoticiasUS()
-                        var respostaNoticias = msgs_texto.utilidades.noticiasus.resposta_titulo
-                        for (let noticia of listaNoticias) {
-                            respostaNoticias += criarTexto(msgs_texto.utilidades.noticiasus.resposta_itens, noticia.titulo, noticia.descricao || "Sem descrição", noticia.url)
-                        }
-                        await client.reply(from, respostaNoticias, id)
-                    } catch (err) {
-                        await client.reply(from, err.message, id)
+                /*const { callChatGPT } = require('../lib/api');
+                const userMessage = message.body.replace('!chat', '').trim();
+                const answer = await callChatGPT(userMessage, chatHistory);
+                const respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, answer);
+                await client.sendText(from, respostaTexto);
+                break;*/
+            //========= FIM CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//  
+                
+            case '!dalle':
+                if(quotedMsg || type != "chat") return await client.reply(from, erroComandoMsg(command) , id)
+                var usuarioQuantidadeFotos = parseInt(args[1]);
+                qtdFotos = isNaN(usuarioQuantidadeFotos) ? 1 : Math.min(Math.max(usuarioQuantidadeFotos, 1), 5);
+                textoImagem = args.slice(2).join(" ").trim();
+                usuarioQuantidadeFotos = qtdFotos
+                if (!textoImagem) return await client.reply(from, erroComandoMsg(command), id)
+                if (textoImagem.length > 120) return await client.reply(from, msgs_texto.utilidades.dalle.tema_longo , id)
+                await filaImg.add(async ()=>{
+                try{
+                    var resultadosImagens = [await api.generateDALLEImage(textoImagem, qtdFotos)];
+                    for(let imagem of resultadosImagens){
+                        client.sendFileFromUrl(from, imagem , "foto.png" , "", (qtdFotos == 1) ? id : "").catch(async ()=>{
+                            await client.sendText(from, msgs_texto.utilidades.dalle.erro_imagem)
+                        })
                     }
-                    break;
+                } catch(err){
+                    await client.reply(from, err.message, id)
+                }
+            })
+            break
 
-                case "!ddi":
-                    var DDI = null
-                    if (quotedMsg) {
-                        let DDI = quotedMsgObj.author.slice(0, 2)
-                    } else if (args.length > 1 && args[1].length == 4) {
-                        if (args[1].length != 4) return client.reply(from, msgs_texto.utilidades.ddi.erro_ddi, id)
-                        DDI = args[1]
-                    } else {
-                        return client.reply(from, erroComandoMsg(command), id)
+            case '!noticiasus':
+                try {
+                    var listaNoticias = await api.obterNoticiasUS()
+                    var respostaNoticias = msgs_texto.utilidades.noticiasus.resposta_titulo
+                    for (let noticia of listaNoticias) {
+                        respostaNoticias += criarTexto(msgs_texto.utilidades.noticiasus.resposta_itens, noticia.titulo, noticia.descricao || "Sem descrição", noticia.url)
                     }
-                    try {
-                        var resposta = await api.obterInfoDDI(DDI)
-                        client.reply(from, resposta, id)
-                    } catch (err) {
-                        client.reply(from, err.message, id)
-                    }
-                    break
+                    await client.reply(from, respostaNoticias, id)
+                } catch (err) {
+                    await client.reply(from, err.message, id)
+                }
+                break;
 
-                case "!acao":
-                    if (args.length === 1) return client.reply(from, erroComandoMsg(command), id)
-                    try {
-                        var usuarioTexto = await api.obterAcao(usuarioTexto)
-                        var respostaAcaoTexto = criarTexto(msgs_texto.utilidades.acao.resposta, acao.texto)
-                        client.reply(from, respostaAcaoTexto, id)
-                    } catch (err) {
-                        client.reply(from, err.message, id)
-                    }
-                    break
+            case "!ddi":
+                var DDI = null
+                if (quotedMsg) {
+                    let DDI = quotedMsgObj.author.slice(0, 2)
+                } else if (args.length > 1 && args[1].length == 4) {
+                    if (args[1].length != 4) return client.reply(from, msgs_texto.utilidades.ddi.erro_ddi, id)
+                    DDI = args[1]
+                } else {
+                    return client.reply(from, erroComandoMsg(command), id)
+                }
+                try {
+                    var resposta = await api.obterInfoDDI(DDI)
+                    client.reply(from, resposta, id)
+                } catch (err) {
+                    client.reply(from, err.message, id)
+                }
+                break
 
+            case "!acao":
+                if (args.length === 1) return client.reply(from, erroComandoMsg(command), id)
+                try {
+                    var usuarioTexto = await api.obterAcao(usuarioTexto)
+                    var respostaAcaoTexto = criarTexto(msgs_texto.utilidades.acao.resposta, acao.texto)
+                    client.reply(from, respostaAcaoTexto, id)
+                } catch (err) {
+                    client.reply(from, err.message, id)
+                }
+                break
 
         }
     } catch(err){
         throw err
-    }
-    
+    } 
 
 }

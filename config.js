@@ -1,7 +1,7 @@
-module.exports = config = (headless, start) =>  {
+module.exports = config = (start) =>  {
     return{
         sessionId: 'session',
-        headless,
+        headless: 'new',
         qrTimeout: 0,
         authTimeout: 0,
         skipUpdateCheck: true,

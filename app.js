@@ -13,9 +13,6 @@ const msgs_texto = require("./lib/msgs")
 const recarregarContagem = require("./lib/recarregarContagem")
 const {botStart} = require('./lib/bot')
 const {verificarEnv} = require('./lib/env')
-// const {insert, response} = require('./lib/api.js')
-
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const { OpenAIApi } = require('openai');
@@ -60,6 +57,7 @@ const start = async (client = new Client()) => {
                 if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus()
             })
 
+            //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
             // Configurações do servidor Express
             const app = express();
             app.use(bodyParser.urlencoded({ extended: false }));
@@ -86,25 +84,49 @@ const start = async (client = new Client()) => {
                     client.sendText(mensagem.from, answer);
                     console.log(answer);
                     res.json({ answer });
-                  } catch (error) {
+                } catch (error) {
                     console.error(error);
                     res.status(500).json({ error: 'Ocorreu um erro ao processar a mensagem.' });
-                  }
+                }
                 });
                 
                 // Função para fazer a chamada ao ChatGPT
                 async function callChatGPT(mensagem) {
-                  const params = {
+                const params = {
                     model: 'gpt-3.5-turbo',
                     messages: [
-                      { role: 'system', content: 'Você é um assistente de bate-papo.' },
-                      { role: 'user', content: mensagem }
+                    { role: 'system', content: 'Você é o Ultron, um modelo de linguagem treinado pela OpenAI, seu dono e mestre é o Thiago. Você torce para o São Paulo. Responda de forma correta e concisa.\nKnowledge cutoff: 2021-09-01' },
+                    { role: 'user', content: mensagem }
                     ],
                     max_tokens: 1000
-                  };
+                };
                 
-                  return await openaiClient.complete(params);
+                return await openaiClient.complete(params);
                 }
+
+            /*const express = require('express');
+            const bodyParser = require('body-parser');
+            const app = express();
+            const port = 3000;
+            let chatHistory = [];
+            const { callChatGPT } = require('./lib/api');
+            app.use(bodyParser.urlencoded({ extended: false }));
+            app.use(bodyParser.json());
+            app.post('/mensagem', async (req, res) => {
+              try {
+                const mensagem = req.body.mensagem;
+                const answer = await callChatGPT(mensagem, chatHistory);
+                res.json({ answer });
+              } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: 'Ocorreu um erro ao processar a mensagem.' });
+              }
+            });
+            app.listen(port, () => {});
+            module.exports = {
+              chatHistory, // Exporta a variável chatHistory
+            };*/
+            //========= FIM CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
 
             // Ouvindo mensagens
             client.onMessage((async (message) => {
