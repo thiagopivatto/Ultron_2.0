@@ -645,6 +645,21 @@ module.exports = grupo = async(client,message) => {
                 }     
                 break
 
+            case '!unban':
+                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id);
+                if (quotedMsg && quotedMsgObj.author) {
+                    const usuarioBanido = quotedMsgObj.author;
+                    client.addParticipant(groupId, usuarioBanido).then(() => {
+                        client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_unban, usuarioBanido.replace("@c.us", ""), username));
+                    }).catch(() => {
+                        client.reply(from, "NÃO FOI POSSÍVEL ADICIONAR ESSA PESSOA", id);
+                    });
+                } else {
+                    client.reply(from, erroComandoMsg(command), id);
+                }
+                break
+
+
             case '!promover':
                 if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
                 if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
