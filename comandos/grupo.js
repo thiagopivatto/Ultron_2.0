@@ -543,6 +543,23 @@ module.exports = grupo = async(client,message) => {
                 respostaMarcar += `╚═〘 ${process.env.NOME_BOT.trim()}®〙`
                 await client.sendTextWithMentions(from, respostaMarcar)
                 break
+
+            case '!mta':
+                const members = await client.getGroupMembers(groupId);
+                const mensagem = body.slice(5).trim();
+                let mentionString = '';
+                for (let member of members) {
+                    mentionString += `@${member.id.split('@')[0]} `;
+                }
+                let anonymousMention = '';
+                if (mensagem) {
+                    anonymousMention = mensagem;
+                } else {
+                    anonymousMention = '*ATENÇÃO!*';
+                }
+                const messageToSend = `${mentionString}\n\n${anonymousMention}`;
+                await client.sendTextWithMentions(from, messageToSend, true);
+                break
                 
             case '!mm':
                 if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
