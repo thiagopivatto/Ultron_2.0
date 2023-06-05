@@ -1,4 +1,4 @@
-module.exports = config = (start) =>  {
+module.exports = config = (headless, start) =>  {
     return{
         sessionId: 'session',
         headless: 'new',
