@@ -1,172 +1,158 @@
-//REQUERINDO MODULOS
-const moment = require("moment-timezone")
-moment.tz.setDefault('America/Sao_Paulo')
-require('dotenv').config()
-const { create, Client } = require('@open-wa/wa-automate')
-const {criarArquivosNecessarios, criarTexto, consoleErro, corTexto} = require('./lib/util')
-const {verificacaoListaNegraGeral} = require(`./lib/listaNegra`)
-const {atualizarParticipantes} = require("./lib/controleParticipantes")
-const config = require('./config')
-const checagemMensagem = require("./lib/checagemMensagem")
-const chamadaComando = require("./lib/chamadaComando")
-const msgs_texto = require("./lib/msgs")
-const recarregarContagem = require("./lib/recarregarContagem")
-const {botStart} = require('./lib/bot')
-const {verificarEnv} = require('./lib/env')
-const express = require('express');
-const bodyParser = require('body-parser');
-const { OpenAIApi } = require('openai');
+// REQUERINDO MÓDULOS
+const moment = require("moment-timezone");
+moment.tz.setDefault('America/Sao_Paulo');
+require('dotenv').config();
+const { create, Client } = require('@open-wa/wa-automate');
+const { criarArquivosNecessarios, criarTexto, consoleErro, corTexto } = require('./lib/util');
+const { verificacaoListaNegraGeral } = require(`./lib/listaNegra`);
+const { atualizarParticipantes } = require("./lib/controleParticipantes");
+const config = require('./config');
+const checagemMensagem = require("./lib/checagemMensagem");
+const chamadaComando = require("./lib/chamadaComando");
+const msgs_texto = require("./lib/msgs");
+const recarregarContagem = require("./lib/recarregarContagem");
+const { botStart } = require('./lib/bot');
+const { verificarEnv } = require('./lib/env');
 const cron = require('node-cron');
 
-const start = async (client = new Client()) => {
-    try{
-        //VERIFICA SE É NECESSÁRIO CRIAR ALGUM TIPO DE ARQUIVO NECESSÁRIO
-        let necessitaCriar = await criarArquivosNecessarios()
-        if(necessitaCriar){
-            console.log(corTexto(msgs_texto.inicio.arquivos_criados))
-            setTimeout(()=>{
-                return client.kill()
-            },5000)
-        } else {
-            const eventosGrupo = require('./lib/eventosGrupo')
-            const antiLink = require('./lib/antiLink')
-            const antiFlood = require('./lib/antiFlood')
-            const antiTrava = require('./lib/antiTrava')
-            const antiPorno = require('./lib/antiPorno')
-            const cadastrarGrupo = require('./lib/cadastrarGrupo')
 
-            //Cadastro de grupos
-            console.log(corTexto(await cadastrarGrupo("","inicio",client)))
-            //Verificar lista negra dos grupos
-            console.log(corTexto(await verificacaoListaNegraGeral(client)))
-            //Atualização dos participantes dos grupos
-            console.log(corTexto(await atualizarParticipantes(client)))
-            //Atualização da contagem de mensagens
-            console.log(corTexto(await recarregarContagem(client)))
-            //Pegando hora de inicialização do BOT
-            console.log(corTexto(await botStart()))
-            //Verificando se os campos do .env foram modificados e envia para o console
-            verificarEnv()
+const api = require('./lib/api');
+const { saveMessage } = require('./lib/database');
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+app.use(bodyParser.json());
+app.post('/chat', async (req, res) => {
+  const message = req.body.message;
+  const isGroupMessage = message.isGroupMsg;
+  const chatId = isGroupMessage ? message.chatId : message.from;
+  const response = await api.callChatGPT(chatId, message);
+  res.json({ response });
+});
 
-            //INICIO DO SERVIDOR
-            console.log('[SERVIDOR] Servidor iniciado!')
+app.listen(3000, () => console.log('API iniciada na porta 3000'));
 
-            // Forçando para continuar na sessão atual
-            client.onStateChanged((estado) => {
-                console.log('[ESTADO CLIENTE]', estado)
-                if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus()
-            })
+create(config(true), { ...start, restartOnCrash: true })
+  .then(client => start(client))
+  .catch((error) => { consoleErro(error, 'OPEN-WA'); });
 
-            //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
-            // Configurações do servidor Express
-            const app = express();
-            app.use(bodyParser.urlencoded({ extended: false }));
-            app.use(bodyParser.json());
+async function start(client) {
+  try {
+    // VERIFICA SE É NECESSÁRIO CRIAR ALGUM TIPO DE ARQUIVO NECESSÁRIO
+    let necessitaCriar = await criarArquivosNecessarios();
+    if (necessitaCriar) {
+      console.log(corTexto(msgs_texto.inicio.arquivos_criados));
+      setTimeout(() => {
+        return client.kill();
+      }, 5000);
+    } else {
+      const eventosGrupo = require('./lib/eventosGrupo');
+      const antiLink = require('./lib/antiLink');
+      const antiFlood = require('./lib/antiFlood');
+      const antiTrava = require('./lib/antiTrava');
+      const antiPorno = require('./lib/antiPorno');
+      const cadastrarGrupo = require('./lib/cadastrarGrupo');
 
-            // Crie uma instância do cliente OpenAI
-            const openaiClient = new OpenAIApi(process.env.OPENAI_API_KEY);
+      // Cadastro de grupos
+      console.log(corTexto(await cadastrarGrupo("", "inicio", client)));
+      // Verificar lista negra dos grupos
+      console.log(corTexto(await verificacaoListaNegraGeral(client)));
+      // Atualização dos participantes dos grupos
+      console.log(corTexto(await atualizarParticipantes(client)));
+      // Atualização da contagem de mensagens
+      console.log(corTexto(await recarregarContagem(client)));
+      // Pegando hora de inicialização do BOT
+      console.log(corTexto(await botStart()));
+      // Verificando se os campos do .env foram modificados e envia para o console
+      verificarEnv();
 
-            // Inicie o servidor
-            const port = 3000;
-            app.listen(port, () => {
-            });
+      // VERIFICANDO SE O NÚMERO É DO BOT
+      const botNumber = await client.getHostNumber();
 
-            // Rota para receber as mensagens do usuário
-            app.post('/mensagem', async (req, res) => {
-                try {
-                    const mensagem = req.body.mensagem;
-                
-                    // Chama o ChatGPT para obter a resposta
-                    const response = await callChatGPT(mensagem);
-                    const answer = response.choices[0].text;
-                
-                    // Envia a resposta ao usuário
-                    client.sendText(mensagem.from, answer);
-                    console.log(answer);
-                    res.json({ answer });
-                } catch (error) {
-                    console.error(error);
-                    res.status(500).json({ error: 'Ocorreu um erro ao processar a mensagem.' });
-                }
-                });
-                
-                // Função para fazer a chamada ao ChatGPT
-                async function callChatGPT(mensagem) {
-                const params = {
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                    { role: 'system', content: 'Você é o Ultron, um modelo de linguagem treinado pela OpenAI, seu dono e mestre é o Thiago. Você torce para o São Paulo. Responda de forma correta e concisa.\nKnowledge cutoff: 2021-09-01' },
-                    { role: 'user', content: mensagem }
-                    ],
-                    max_tokens: 1000
-                };
-                
-                return await openaiClient.complete(params);
-                }
+      // INICIO DO SERVIDOR
+      console.log('[SERVIDOR] Servidor iniciado!');
 
-            /*const express = require('express');
-            const bodyParser = require('body-parser');
-            const app = express();
-            const port = 3000;
-            let chatHistory = [];
-            const { callChatGPT } = require('./lib/api');
-            app.use(bodyParser.urlencoded({ extended: false }));
-            app.use(bodyParser.json());
-            app.post('/mensagem', async (req, res) => {
-              try {
-                const mensagem = req.body.mensagem;
-                const answer = await callChatGPT(mensagem, chatHistory);
-                res.json({ answer });
-              } catch (error) {
-                console.error(error);
-                res.status(500).json({ error: 'Ocorreu um erro ao processar a mensagem.' });
-              }
-            });
-            app.listen(port, () => {});
-            module.exports = {
-              chatHistory, // Exporta a variável chatHistory
-            };*/
-            //========= FIM CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
+      // Forçando para continuar na sessão atual
+      client.onStateChanged((estado) => {
+        console.log('[ESTADO CLIENTE]', estado);
+        if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus();
+      });
 
-            // Ouvindo mensagens
-            client.onMessage((async (message) => {
-                if(!await antiTrava(client,message)) return
-                if(!await antiLink(client,message)) return
-                if(!await antiFlood(client,message)) return
-                if(!await antiPorno(client, message)) return
-                if(!await checagemMensagem(client, message)) return
-                await chamadaComando(client, message)
-            }))
+      let simiAtivo = false;
+      const handleSimiMessage = async (client, message, simiAtivo, api) => {
+        if (simiAtivo && message.fromMe) {
+          const userMessage = message.body;
+          const answer = await api.callSimSimi(userMessage);
+          await client.sendText(message.from, answer);
+        }
+      };
 
-            //Ouvindo entrada/saida de participantes dos grupo
-            client.onGlobalParticipantsChanged((async (ev) => {
-                await eventosGrupo(client, ev)
-            }))
-            
-            //Ouvindo se a entrada do BOT em grupos
-            client.onAddedToGroup((async (chat) => {
-                await cadastrarGrupo(chat.id, "added", client)
-                let gInfo = await client.getGroupInfo(chat.id)
-                //await client.sendText(chat.id, criarTexto(msgs_texto.geral.entrada_grupo, gInfo.title))
-            }))
+      // Ouvindo mensagens
+      client.onMessage(async (message) => {
+        if (!await antiTrava(client, message)) return;
+        if (!await antiLink(client, message)) return;
+        if (!await antiFlood(client, message)) return;
+        if (!await antiPorno(client, message)) return;
+        try {
+          if (simiAtivo === 'true') {
+            await handleSimiMessage(client, message, simiAtivo, api);
+          } else {
+              // Executa a checagem de mensagens
+              await checagemMensagem(client, message);
+              // Salva a mensagem no banco de dados
+              //await saveMessage(message);
+              // Executa a chamada de comandos
+              await chamadaComando(client, message);
+          }
+        } catch (err) {
+          consoleErro(err);
+        }
+      });
 
-            // Ouvindo ligações recebidas
-            client.onIncomingCall(( async (call) => {
-            //    await client.sendText(call.peerJid, msgs_texto.geral.sem_ligacoes).then(async ()=>{
-            //        client.contactBlock(call.peerJid)
-            //    })
-            }))
-        } 
-    } catch(err) {
-        //Faça algo se der erro em alguma das funções acima
-        console.log(err)
-        console.error(corTexto("[ERRO FATAL]","#d63e3e"), err.message)
-        setTimeout(()=>{
-            return client.kill()
-        },10000)
+      // Ouvindo entrada/saida de participantes dos grupos
+      client.onGlobalParticipantsChanged(async (ev) => { await eventosGrupo(client, ev); });
+      // Ouvindo se a entrada do BOT em grupos
+      client.onAddedToGroup(async (chat) => {
+        await cadastrarGrupo(chat.id, "added", client);
+        let gInfo = await client.getGroupInfo(chat.id);
+        await client.sendText(chat.id, criarTexto(msgs_texto.geral.entrada_grupo, gInfo.title));
+      });
+      // Ouvindo ligações recebidas
+      client.onIncomingCall(async (call) => {
+        // await client.sendText(call.peerJid, msgs_texto.geral.sem_ligacoes).then(async () => { client.contactBlock(call.peerJid) });
+      });
     }
-}
 
-create(config(true, start))
-    .then(client => start(client))
-    .catch((error) => consoleErro(error, 'OPEN-WA'))
+      // AGENDADOR DE TAREFAS
+      cron.schedule('0 0 * * *', async () => {
+        console.log('[CRON] Iniciando tarefa agendada...');
+        console.log('[CRON] Verificando lista negra dos grupos...');
+        console.log(corTexto(await verificacaoListaNegraGeral(client)));
+        console.log('[CRON] Atualizando participantes dos grupos...');
+        console.log(corTexto(await atualizarParticipantes(client)));
+        console.log('[CRON] Recarregando contagem de mensagens...');
+        console.log(corTexto(await recarregarContagem(client)));
+        console.log('[CRON] Tarefa agendada concluída!');
+      });
+
+      process.on('beforeExit', () => {
+        redisClient.quit();
+      });
+
+      // SESSÃO ENCERRADA
+      client.onStateChanged(async (state) => {
+        if (state === 'CONFLICT' || state === 'UNLAUNCHED') {
+          console.log('[SERVIDOR] Sessão encerrada!');
+          await client.forceRefocus();
+        }
+      });
+
+  } catch (err) {
+    // Faça algo se der erro em alguma das funções acima
+    console.log(err);
+    console.error(corTexto("[ERRO FATAL]", "#d63e3e"), err.message);
+    setTimeout(() => {
+      return client.kill();
+    }, 10000);
+  }
+}

@@ -15,20 +15,117 @@ const ttsClient = new TextToSpeechClient({
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
     },
   });
-const textoParaVoz = require('../lib/api.js').textoParaVoz;
+const textoParaVoz = require('../lib/api').textoParaVoz;
+const { callChatGPT } = require('../lib/api');
+const { openaiInstance, redisClient } = require('../lib/api');
 
 
-module.exports = utilidades = async(client,message) => {
-    try{
-        const { type, id, from, caption, isMedia, mimetype, quotedMsg, quotedMsgObj, body} = message
-        const commands = caption || body || ''
-        var command = commands.toLowerCase().split(' ')[0] || ''
-        command = removerNegritoComando(command)
-        const args =  commands.split(' ')
-        const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
-        const { chatHistory } = require('../app');
 
-        switch(command){  
+const Replicate = require('replicate');
+const fetch = require('cross-fetch');
+const apiKey = process.env.REPLICATE_API_TOKEN;
+const express = require('express');
+const bodyParser = require('body-parser');
+
+if (!apiKey) {
+  console.error("API token not found. Please set the REPLICATE_API_TOKEN environment variable.");
+  process.exit(1);
+}
+
+const replicate = new Replicate({ auth: apiKey });
+const app = express();
+app.use(bodyParser.json());
+
+// Função para gerar imagens usando a API replicate
+async function gerarImagensIA(prompt, webhookURL) {
+  const model = "stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf";
+  const input = { prompt, webhook: webhookURL, webhook_events_filter: ["completed"] };
+
+  try {
+    const output = await replicate.predictions.create({ version: model, input });
+
+    if (output && output.files) {
+      const imagensGeradas = output.files.slice(0, 4);
+      return imagensGeradas;
+    } else {
+      throw new Error('A API replicate não retornou os dados esperados.');
+    }
+  } catch (error) {
+    console.error("Failed to run predictions:", error);
+    throw new Error('Ocorreu um erro ao gerar as imagens usando a API replicate.');
+  }
+}
+
+// Rota para o endpoint do webhook
+app.post('/replicate-webhook', async (req, res) => {
+    try {
+      const prediction = req.body;
+  
+      // Processar os dados recebidos do webhook
+      console.log('Recebido webhook:', prediction);
+      // Implemente sua lógica para lidar com os dados recebidos do webhook
+  
+      res.sendStatus(200);
+    } catch (error) {
+      console.error(error);
+      res.sendStatus(500);
+    }
+  });
+
+// Função para processar o comando "!gerar"
+const processarComandoGerar = async (client, message, args) => {
+  const prompt = args.slice(1).join(' '); // Texto prompt fornecido pelo usuário
+  const webhookURL = "https://example.com/your-webhook"; // URL do seu webhook
+
+  try {
+    const imagensGeradas = await gerarImagensIA(prompt, webhookURL);
+    // Enviar as imagens geradas para o cliente do WhatsApp
+    for (const imagem of imagensGeradas) {
+      await client.sendImage(message.from, imagem, 'imagem.jpg', 'Imagem gerada pela IA');
+    }
+  } catch (error) {
+    console.error(error);
+    await client.reply(message.from, 'Ocorreu um erro ao gerar as imagens.', message.id);
+  }
+};
+
+// Configurar o servidor Express
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
+
+module.exports = utilidades = async (client, message) => {
+  try {
+    const { type, id, from, caption, isMedia, mimetype, quotedMsg, quotedMsgObj, body } = message;
+    const commands = caption || body || '';
+    var command = commands.toLowerCase().split(' ')[0] || '';
+    command = removerNegritoComando(command);
+    const args = commands.split(' ');
+    const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36';
+
+    switch (command) {
+      // NOVOS COMANDOS
+            case '!gerar':
+                if (args.length < 2) {
+                client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !gerar <prompt>', id);
+                } else {
+                await processarComandoGerar(client, message, args);
+                }
+                break
+
+            case '!simi':
+                simiAtivo = !simiAtivo;
+                const statusSimi = simiAtivo ? 'Sim Simi ativado.' : 'Sim Simi desativado.';
+                await client.sendText(from, statusSimi);
+                if (simiAtivo && message.fromMe) {
+                    const userMessage = message.body;
+                    const answer = await api.callSimSimi(userMessage);
+                    await client.sendText(message.from, answer);
+                }
+
+            break
+
             case "!tabela":
                 var tabela = await api.obterTabelaNick()
                 await client.reply(from, criarTexto(msgs_texto.utilidades.tabela.resposta, tabela), id)
@@ -319,21 +416,16 @@ module.exports = utilidades = async(client,message) => {
                 break
 
             // NOVOS COMANDOS
+
+
             //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//
             case '!chat':
                 const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await api.callChatGPT(userMessage);
+                const answer = await callChatGPT(openaiInstance, chatId, userMessage);
                 const respostaText = `${answer}`;
                 var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
                 await client.sendText(from, respostaTexto);
                 break
-
-                /*const { callChatGPT } = require('../lib/api');
-                const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await callChatGPT(userMessage, chatHistory);
-                const respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, answer);
-                await client.sendText(from, respostaTexto);
-                break;*/
             //========= FIM CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//  
                 
             case '!dalle':

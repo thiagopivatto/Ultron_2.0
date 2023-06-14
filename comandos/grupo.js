@@ -533,7 +533,6 @@ module.exports = grupo = async(client,message) => {
                 break
 
             case '!mt':
-                //if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
                 var membrosGrupo = await client.getGroupMembers(groupId)
                 var usuarioTexto = body.slice(4).trim()
                 var respostaMarcar = (args.length > 1) ? criarTexto(msgs_texto.grupo.mt.resposta_titulo_variavel, usuarioTexto) : msgs_texto.grupo.mt.resposta_titulo_comum
@@ -589,8 +588,6 @@ module.exports = grupo = async(client,message) => {
                 break  
             
             case '!add':
-                if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
-                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
                 if (args.length === 1) return client.reply(from, erroComandoMsg(command), id)
                 var usuarioNumeros = body.slice(5).split(",")
                 for(let numero of usuarioNumeros){
@@ -613,7 +610,7 @@ module.exports = grupo = async(client,message) => {
                                     break
                             }
                         } else {
-                            mensagemErro = msgs_texto.grupo.add.nao_contato
+                            //mensagemErro = msgs_texto.grupo.add.nao_contato
                         }
                         client.reply(from, criarTexto(mensagemErro, numeroFormatado), id)
                     })
@@ -621,8 +618,8 @@ module.exports = grupo = async(client,message) => {
                 break
 
             case '!ban':
-                //if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
-                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
+                if (!isGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
+                if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id)
                 var usuariosSelecionados = []
                 if(mentionedJidList.length === 0 && quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)
                 else if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
@@ -646,11 +643,10 @@ module.exports = grupo = async(client,message) => {
                 break
 
             case '!unban':
-                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id);
+                if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id);
                 if (quotedMsg && quotedMsgObj.author) {
                     const usuarioBanido = quotedMsgObj.author;
                     client.addParticipant(groupId, usuarioBanido).then(() => {
-                        client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_unban, usuarioBanido.replace("@c.us", ""), username));
                     }).catch(() => {
                         client.reply(from, "NÃO FOI POSSÍVEL ADICIONAR ESSA PESSOA", id);
                     });
@@ -661,8 +657,8 @@ module.exports = grupo = async(client,message) => {
 
 
             case '!promover':
-                if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
-                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
+                if (!isGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
+                if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id)
                 var usuariosSelecionados = [], respostaUsuarios = ''
                 if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
                 else if(quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)

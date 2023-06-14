@@ -19,7 +19,9 @@
         "!qualmusica",
         "!acao",
         "!chat",
-        "!dalle"
+        "!dalle",
+        "!simi",
+        "!gerar"
     ],
     "info":[
         "!ajuda","!menu",
