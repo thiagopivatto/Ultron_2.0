@@ -14,23 +14,9 @@ const recarregarContagem = require("./lib/recarregarContagem");
 const { botStart } = require('./lib/bot');
 const { verificarEnv } = require('./lib/env');
 const cron = require('node-cron');
-
-
-const api = require('./lib/api');
-const { saveMessage } = require('./lib/database');
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-app.use(bodyParser.json());
-app.post('/chat', async (req, res) => {
-  const message = req.body.message;
-  const isGroupMessage = message.isGroupMsg;
-  const chatId = isGroupMessage ? message.chatId : message.from;
-  const response = await api.callChatGPT(chatId, message);
-  res.json({ response });
-});
-
-app.listen(3000, () => console.log('API iniciada na porta 3000'));
+const { callChatGPT } = require('./lib/api');
+const { callSimSimi } = require('./lib/api');
+const utilidades = require('./comandos/utilidades');
 
 create(config(true), { ...start, restartOnCrash: true })
   .then(client => start(client))
@@ -78,6 +64,14 @@ async function start(client) {
         if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus();
       });
 
+      //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
+      async function callChatGPT(mensagem) {
+        const response = await callChatGPT(mensagem);
+        const answer = response.choices[0].text;
+        res.json({ answer });
+      }
+      //========= FIM CONFIGURAÇÃO CHAT GPT 3==== app.js ========//
+
       let simiAtivo = false;
       const handleSimiMessage = async (client, message, simiAtivo, api) => {
         if (simiAtivo && message.fromMe) {
@@ -94,7 +88,7 @@ async function start(client) {
         if (!await antiFlood(client, message)) return;
         if (!await antiPorno(client, message)) return;
         try {
-          if (simiAtivo === 'true') {
+          if (simiAtivo) {
             await handleSimiMessage(client, message, simiAtivo, api);
           } else {
               // Executa a checagem de mensagens
@@ -133,10 +127,6 @@ async function start(client) {
         console.log('[CRON] Recarregando contagem de mensagens...');
         console.log(corTexto(await recarregarContagem(client)));
         console.log('[CRON] Tarefa agendada concluída!');
-      });
-
-      process.on('beforeExit', () => {
-        redisClient.quit();
       });
 
       // SESSÃO ENCERRADA

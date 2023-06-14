@@ -16,16 +16,14 @@ const ttsClient = new TextToSpeechClient({
     },
   });
 const textoParaVoz = require('../lib/api').textoParaVoz;
-const { callChatGPT } = require('../lib/api');
-const { openaiInstance, redisClient } = require('../lib/api');
-
-
-
+const { callChatGPT, callSimSimi } = require('../lib/api');
 const Replicate = require('replicate');
 const fetch = require('cross-fetch');
 const apiKey = process.env.REPLICATE_API_TOKEN;
 const express = require('express');
 const bodyParser = require('body-parser');
+
+let simiAtivo = false;
 
 if (!apiKey) {
   console.error("API token not found. Please set the REPLICATE_API_TOKEN environment variable.");
@@ -123,8 +121,7 @@ module.exports = utilidades = async (client, message) => {
                     const answer = await api.callSimSimi(userMessage);
                     await client.sendText(message.from, answer);
                 }
-
-            break
+                break
 
             case "!tabela":
                 var tabela = await api.obterTabelaNick()
@@ -421,7 +418,7 @@ module.exports = utilidades = async (client, message) => {
             //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//
             case '!chat':
                 const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await callChatGPT(openaiInstance, chatId, userMessage);
+                const answer = await api.callChatGPT(userMessage);
                 const respostaText = `${answer}`;
                 var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
                 await client.sendText(from, respostaTexto);
