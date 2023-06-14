@@ -16,7 +16,6 @@ const { verificarEnv } = require('./lib/env');
 const cron = require('node-cron');
 const { callChatGPT } = require('./lib/api');
 const { callSimSimi } = require('./lib/api');
-const utilidades = require('./comandos/utilidades');
 
 create(config(true), { ...start, restartOnCrash: true })
   .then(client => start(client))
@@ -73,10 +72,10 @@ async function start(client) {
       //========= FIM CONFIGURAÇÃO CHAT GPT 3==== app.js ========//
 
       let simiAtivo = false;
-      const handleSimiMessage = async (client, message, simiAtivo, api) => {
+      async function handleSimiMessage (client, message, simiAtivo) {
         if (simiAtivo && message.fromMe) {
           const userMessage = message.body;
-          const answer = await api.callSimSimi(userMessage);
+          const answer = await callSimSimi(userMessage);
           await client.sendText(message.from, answer);
         }
       };
@@ -89,7 +88,7 @@ async function start(client) {
         if (!await antiPorno(client, message)) return;
         try {
           if (simiAtivo) {
-            await handleSimiMessage(client, message, simiAtivo, api);
+            await handleSimiMessage(client, message, simiAtivo);
           } else {
               // Executa a checagem de mensagens
               await checagemMensagem(client, message);
