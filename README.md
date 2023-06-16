@@ -20,8 +20,8 @@ Instalar Node (LTS):<br>
 `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash` <br>
 `. ~/.bashrc` <br>
 `nvm list-remote` <br>
-Selecione a última versão estável (LTS), no momento a versão mais atual é a 16.14.2: <br>
-`nvm install v16.14.2` <br><br>
+Selecione a última versão estável (LTS), no momento a versão mais atual é a 18.16.0: <br>
+`nvm install v18.16.0` <br><br>
 
 Instalar Google Chrome: <br>
 `wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -` <br>
@@ -36,8 +36,8 @@ Isso tudo é necessário para o bot funcionar corretamente. <br><br>
 **1) Clone este projeto OU faça download da ultima release:** <br> 
 Para clonar, digite os comandos abaixo no Terminal do seu sistema: <br><br>
 
-`git clone https://github.com/thiagopivatto/Ultron-Ubuntu.git` <br>
-`cd Ultron-Ubuntu` <br><br><br>
+`git clone https://github.com/thiagopivatto/Ultron_2.0.git` <br>
+`cd Ultron_2.0_` <br><br><br>
 
 
 **2) Instale as dependências:** <br>
@@ -65,7 +65,7 @@ Todos os comandos agora tem um guia ao digitar !comando guia<br><br>
 Pronto! Seu bot já está funcionando!!<br>
 Obs: Se você deseja utilizar os comandos !noticias (noticias atuais), !qualmusica(reconhecimento de músicas) e o recurso de anti-pornografia vá para o passo 5.<br><br>
 
-Sugestão: Caso você esteja rodando o BOT em uma VM, execute os seguintes comandos para que o BOT siga em execução mesmo com o terminal fechado:<br><br>
+Sugestão: Caso você esteja rodando o BOT em uma VM Linux, execute os seguintes comandos para que o BOT siga em execução mesmo com o terminal fechado:<br><br>
 
 Instalar tmux:<br>
 `sudo apt install tmux`<br><br>
@@ -107,7 +107,18 @@ Após a criação das chaves de API, abra o arquivo .env na raiz do projeto e ed
     acr_access_secret= recebe seu access_secret obtido no https://acrcloud.com/
     # DEEPAI - DETECTOR DE NUDEZ/PORNOGRAFIA
     API_DEEPAI= recebe a chave da conta que voce criar no site deepai.org 
+    # OPENAI - CHAT GPT 3
+    OPENAI_API_KEY= recebe a chave da conta que voce criar no site openai.com/
+    # GOOGLE CLOUD - TRANSCRIÇÃO DE VOZ
+    GOOGLE_CLIENT_EMAIL= chave do projeto criado no site https://cloud.google.com/
+    GOOGLE_PRIVATE_KEY= chave privada do projeto criado no site https://cloud.google.com/
+    # SIM SIMI - CONVERSA MAIS NATURAL
+    SIMSIMI_API_KEY= chave gerada no site https://workshop.simsimi.com/
+    # REPLICATE - GERADOR DE IMAGENS ATRAVÉS DE IA
+    REPLICATE_API_TOKEN= chave gerada no site https://replicate.com/account/api-tokens
 Obs: Se o seu sistema for MAC, habilite a exibição de arquivos ocultos para exibir o .env na raiz do projeto.
+
+Entre na pasta ChatGPT-Context e leia atentamente o tutorial para configurar o contexto de mensagens ao Chat GPT.
 
 
 **7) Recursos Principais:**<br>
@@ -117,12 +128,10 @@ Obs: Se o seu sistema for MAC, habilite a exibição de arquivos ocultos para ex
 | :-----------: | :--------------------------------: |
 |       ✅       | Foto para Sticker     |
 |       ✅       | Sticker para foto              |
-|       ✅       | Texto para Sticker                  |
-|       ✅       | Texto para Sticker Animado                 |
 |       ✅       | Video/GIF para Sticker |
 |       ✅       | Foto para Sticker (Sem fundo) |
 
-### Downloads 
+### Downloads (Temporariamente suspenso)
 
 | Downloads      |                Recursos            |
 | :------------: | :---------------------------------------------: |
@@ -145,7 +154,6 @@ Obs: Se o seu sistema for MAC, habilite a exibição de arquivos ocultos para ex
 |       ✅        |   Consulta de Clima/Previsão do Tempo            |
 |       ✅        |   Conversão de Moedas           |
 |       ✅        |   Calculadora básica           |
-|       ✅        |   Pesquisa Web                  |
 |       ✅        |   Detector Anime                  |
 |       ✅        |   Lançamentos recentes  - Animes                 |
 |       ✅        |   Rastreamento Correios                  |
