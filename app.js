@@ -106,17 +106,17 @@ async function start(client) {
       });
     }
 
-      // AGENDADOR DE TAREFAS
-      cron.schedule('0 0 * * *', async () => {
-        console.log('[CRON] Iniciando tarefa agendada...');
-        console.log('[CRON] Verificando lista negra dos grupos...');
-        console.log(corTexto(await verificacaoListaNegraGeral(client)));
-        console.log('[CRON] Atualizando participantes dos grupos...');
-        console.log(corTexto(await atualizarParticipantes(client)));
-        console.log('[CRON] Recarregando contagem de mensagens...');
-        console.log(corTexto(await recarregarContagem(client)));
-        console.log('[CRON] Tarefa agendada concluída!');
-      });
+      // // AGENDADOR DE TAREFAS
+      // cron.schedule('0 0 * * *', async () => {
+      //   console.log('[CRON] Iniciando tarefa agendada...');
+      //   console.log('[CRON] Verificando lista negra dos grupos...');
+      //   console.log(corTexto(await verificacaoListaNegraGeral(client)));
+      //   console.log('[CRON] Atualizando participantes dos grupos...');
+      //   console.log(corTexto(await atualizarParticipantes(client)));
+      //   console.log('[CRON] Recarregando contagem de mensagens...');
+      //   console.log(corTexto(await recarregarContagem(client)));
+      //   console.log('[CRON] Tarefa agendada concluída!');
+      // });
 
       // SESSÃO ENCERRADA
       client.onStateChanged(async (state) => {
