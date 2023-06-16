@@ -15,10 +15,7 @@ const ttsClient = new TextToSpeechClient({
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
     },
   });
-const textoParaVoz = require('../lib/api').textoParaVoz;
-const { callChatGPT, callSimSimi } = require('../lib/api');
 const Replicate = require('replicate');
-const fetch = require('cross-fetch');
 const apiKey = process.env.REPLICATE_API_TOKEN;
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -418,7 +415,7 @@ module.exports = utilidades = async (client, message) => {
             //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//
             case '!chat':
                 const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await api.callChatGPT(userMessage);
+                const answer = await api.callChatGPT(userMessage, message);
                 const respostaText = `${answer}`;
                 var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
                 await client.sendText(from, respostaTexto);

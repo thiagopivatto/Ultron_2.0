@@ -14,8 +14,8 @@ const recarregarContagem = require("./lib/recarregarContagem");
 const { botStart } = require('./lib/bot');
 const { verificarEnv } = require('./lib/env');
 const cron = require('node-cron');
-const { callChatGPT } = require('./lib/api');
 const { callSimSimi } = require('./lib/api');
+
 
 create(config(true), { ...start, restartOnCrash: true })
   .then(client => start(client))
@@ -63,14 +63,6 @@ async function start(client) {
         if (estado === 'CONFLICT' || estado === 'UNLAUNCHED') client.forceRefocus();
       });
 
-      //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== app.js ======//
-      async function callChatGPT(mensagem) {
-        const response = await callChatGPT(mensagem);
-        const answer = response.choices[0].text;
-        res.json({ answer });
-      }
-      //========= FIM CONFIGURAÇÃO CHAT GPT 3==== app.js ========//
-
       let simiAtivo = false;
       async function handleSimiMessage (client, message, simiAtivo) {
         if (simiAtivo && message.fromMe) {
@@ -92,8 +84,6 @@ async function start(client) {
           } else {
               // Executa a checagem de mensagens
               await checagemMensagem(client, message);
-              // Salva a mensagem no banco de dados
-              //await saveMessage(message);
               // Executa a chamada de comandos
               await chamadaComando(client, message);
           }
