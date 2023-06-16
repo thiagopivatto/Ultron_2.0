@@ -12,6 +12,7 @@ patches.ignore.data.json
 session.data.json
 #Ignorar .env
 *.env
+Chat-GPT-Context-Management/*.bak
 #Ignorar arquivo de teste
 test.js
 #Ignorar logs
