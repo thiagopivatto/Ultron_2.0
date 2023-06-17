@@ -16,6 +16,10 @@ const { verificarEnv } = require('./lib/env');
 const cron = require('node-cron');
 const { callSimSimi } = require('./lib/api');
 
+create(config(true), { ...start, restartOnCrash: true })
+  .then(client => start(client))
+  .catch((error) => { consoleErro(error, 'OPEN-WA'); });
+
 async function start(client) {
   try {
     // VERIFICA SE É NECESSÁRIO CRIAR ALGUM TIPO DE ARQUIVO NECESSÁRIO
@@ -129,9 +133,5 @@ async function start(client) {
       return client.kill();
     }, 10000);
   }
-
-create(config(true), { ...start, restartOnCrash: true })
-  .then(client => start(client))
-  .catch((error) => { consoleErro(error, 'OPEN-WA'); });
 
 }
