@@ -40,7 +40,7 @@ async function start(client) {
       // Cadastro de grupos
       console.log(corTexto(await cadastrarGrupo("", "inicio", client)));
       // Verificar lista negra dos grupos
-      console.log(corTexto(await verificacaoListaNegraGeral(client)));
+      //console.log(corTexto(await verificacaoListaNegraGeral(client)));
       // Atualização dos participantes dos grupos
       console.log(corTexto(await atualizarParticipantes(client)));
       // Atualização da contagem de mensagens
