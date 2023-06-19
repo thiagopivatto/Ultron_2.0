@@ -3,6 +3,7 @@ const msgs_texto = require('../lib/msgs')
 const { criarTexto, primeiraLetraMaiuscula, erroComandoMsg, removerNegritoComando } = require("../lib/util")
 const path = require("path")
 const api = require('../lib/api')
+const axios = require('axios')
 
 module.exports = diversao = async (client, message) => {
     try {
@@ -259,45 +260,33 @@ module.exports = diversao = async (client, message) => {
                 await client.reply(from, respostaTexto, idResposta)
                 break
 
-                
-            // EM DESENVOLVIMENTO - INICIO
-            case "!vddoudsf":
-                if (!isGroupMsg) return await client.reply(from, msgs_texto.permissao.grupo, id)
-                if (!quotedMsg && mentionedJidList.length == 0) return await client.reply(from, erroComandoMsg(command), id)
-                if (mentionedJidList.length > 1) return await client.reply(from, msgs_texto.diversao.vod.sem_membros, id)
-                var escolha = ['verdade', 'desafio'], tipoEscolha = body.slice(7).trim()
-                if (!escolha.includes(tipoEscolha)) return client.reply(from, erroComandoMsg(command), id)
-                let apivddoudsf = await axios.get("https://gist.github.com/deepakshrma/9498a19a3ed460fc662c536d138c29b1")
-                await client.reply(from, "BEM VINDO(A) AO VERDADE OU DESAFIO DO ULTRON! PRIMEIRO DIGITE !VDD ou !DSF SEGUIDO DE UM NÍVEL DE 1 A 5, SENDO 1 FRASES MIAS LEVES E 5 FRASES MAIS PESADAS")
-                var nivel = args[1], nivelVOD = 1, escolhaVOD = ""
-                if (!isNaN(nivel)) {
-                    if (nivel > 0 && nivel <= 5) {
-                        nivelVOD = nivel
-                        escolhaVOD = args.slice(2).join(" ").trim()
-                    } else {
-                        return await client.reply(from, msgs_texto.diversao.vod.escolha, id)
-                    }
-                } else {
-                    textoPesquisa = body.slice(5).trim()
+            case "!vod":
+                if (!isGroupMsg) return await client.reply(from, "Este comando só pode ser usado em grupos.", id);
+                const args = body.split(' ');
+                if (args.length < 3 || args.length > 4) {
+                    return await client.reply(from, "Formato inválido. Use !vod [vdd/dsf] [nível]", id);
                 }
-                try {
-                    if (escolhaVOD == "vdd") {
-                        var resposta = await api.obterInfoVOD()
-                        client.reply(from, resposta, id)
-                    } else if (escolhaVOD == "dsf") {
-
-                    } if (escolhaVOD != "vdd" || escolhaVOD != "dsf") {
-                        return await client.reply(from, msgs_texto.diversao.vod.escolhaVOD, id)
-                    }
-                    var resultadosImagens = await api.obterImagens(textoPesquisa, qtdFotos)
-                    client.sendFileFromUrl(from, imagem, "foto.jpg", "", (qtdFotos == 1) ? id : "").catch(async () => {
-                        await client.sendText(from, msgs_texto.downloads.img.erro_imagem)
-                    })
-                } catch (err) {
-                    await client.reply(from, err.message, id)
+                
+                const tipoEscolha = args[1].toLowerCase();
+                const nivel = parseInt(args[2]);
+                const tipoEscolhaMapeado = tipoEscolha === 'vdd' ? 'truth' : tipoEscolha === 'dsf' ? 'dare' : '';
+                if (!tipoEscolhaMapeado) {
+                    return await client.reply(from, "Tipo de escolha inválido. Use vdd ou dsf.", id);
+                }
+                if (isNaN(nivel) || nivel < 1 || nivel > 5) {
+                    return await client.reply(from, "Nível inválido. Use um número de 1 a 5.", id);
+                }
+                const frasesVOD = await axios.get("https://gist.githubusercontent.com/deepakshrma/9498a19a3ed460fc662c536d138c29b1/raw/f29d323b9b3f0a82f66ed58c7117fb9b599fb8d5/truth-n-dare.json");
+                const frasesFiltradas = frasesVOD.data.filter(frase => frase.level === nivel.toString() && frase.type.toLowerCase() === tipoEscolhaMapeado);
+                if (frasesFiltradas.length > 0) {
+                    await api.traduzirFrases(frasesFiltradas);
+                    const fraseSelecionada = frasesFiltradas[Math.floor(Math.random() * frasesFiltradas.length)];
+                    const mensagemResposta = `Nível: ${nivel}\nTipo: ${tipoEscolha}\nFrase: ${fraseSelecionada.summary}`;
+                    await client.reply(from, mensagemResposta, id);
+                } else {
+                    await client.reply(from, "Não foram encontradas frases com o nível e tipo especificados.", id);
                 }
                 break
-            // EM DESENVOLVIMENTO - FIM 
 
 
             // obterCartasContraHu : async()=>{

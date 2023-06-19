@@ -21,7 +21,9 @@
         "!chat",
         "!dalle",
         "!simi",
-        "!gerar"
+        "!gerar",
+        "!cotacao",
+        "!transcreva"
     ],
     "info":[
         "!ajuda","!menu",
@@ -111,7 +113,8 @@
         "!gato",
         "!jacometro",
         "!bolametro",
-        "!fernandometro"
+        "!fernandometro", 
+        "!vod"
     ],
     "admin":[
         "!desbloquear",

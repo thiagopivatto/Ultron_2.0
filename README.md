@@ -116,6 +116,8 @@ Após a criação das chaves de API, abra o arquivo .env na raiz do projeto e ed
     SIMSIMI_API_KEY= chave gerada no site https://workshop.simsimi.com/
     # REPLICATE - GERADOR DE IMAGENS ATRAVÉS DE IA
     REPLICATE_API_TOKEN= chave gerada no site https://replicate.com/account/api-tokens
+    # ALPHAVANTAGE - Coloque abaixo sua chave do AlphaVantage (Cotação de Ativos (B3, NASDAQ, NYSE e Criptomoedas)
+    ALPHAVANTAGE_API_KEY= chave gerada no site https://www.alphavantage.co/
 Obs: Se o seu sistema for MAC, habilite a exibição de arquivos ocultos para exibir o .env na raiz do projeto.
 
 Entre na pasta ChatGPT-Context e leia atentamente o tutorial para configurar o contexto de mensagens ao Chat GPT.

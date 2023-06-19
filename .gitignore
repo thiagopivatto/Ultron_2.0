@@ -25,6 +25,7 @@ media/img/tmp/*.png
 media/*.gif
 media/tts/*.mp3
 media/audios/*.mp3
+media/audios/*.wav
 media/videos/*.mp4
 media/videos/*.jpg
 #Ignorar DB e etc

@@ -8,17 +8,12 @@ const api = require("../lib/api")
 const {converterMp4ParaMp3} = require("../lib/conversao")
 const {default: PQueue} = require('p-queue')
 const filaImg = new PQueue({concurrency: 2, timeout: 60000})
-const { TextToSpeechClient } = require('@google-cloud/text-to-speech');
-const ttsClient = new TextToSpeechClient({
-    credentials: {
-      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    },
-  });
 const Replicate = require('replicate');
 const apiKey = process.env.REPLICATE_API_TOKEN;
 const express = require('express');
 const bodyParser = require('body-parser');
+const speech = require('@google-cloud/speech');
+const { exec } = require('child_process');
 
 let simiAtivo = false;
 
@@ -87,7 +82,7 @@ const processarComandoGerar = async (client, message, args) => {
 // Configurar o servidor Express
 const port = 3000;
 app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+  //console.log(`Servidor rodando na porta ${port}`);
 });
 
 module.exports = utilidades = async (client, message) => {
@@ -99,15 +94,131 @@ module.exports = utilidades = async (client, message) => {
     const args = commands.split(' ');
     const uaOverride = 'WhatsApp/2.2029.4 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36';
 
+    const criarRespostaCotacao = (data, ativo) => {
+        let resposta = `Cotação:\n`;
+      
+        if (data.b3) {
+          const precoB3 = parseFloat(data.b3.price).toFixed(2).replace('.', ',');
+          resposta += `B3 - ${data.b3.symbol}:\n`;
+          resposta += `- Preço: R$ ${precoB3}\n`;
+          resposta += `- Última atualização: ${data.b3.lastUpdated}\n`;
+          resposta += `- Variação: ${data.b3.change} (${data.b3.changePercent})\n\n`;
+        }
+      
+        if (data.nasdaq) {
+          const precoNASDAQ = parseFloat(data.nasdaq.price).toFixed(2);
+          resposta += `NASDAQ - ${data.nasdaq.symbol}:\n`;
+          resposta += `- Preço: $ ${precoNASDAQ}\n`;
+          resposta += `- Última atualização: ${data.nasdaq.lastUpdated}\n`;
+          resposta += `- Variação: ${data.nasdaq.change} (${data.nasdaq.changePercent})\n\n`;
+        }
+      
+        if (data.nyse) {
+          const precoNYSE = parseFloat(data.nyse.price).toFixed(2);
+          resposta += `NYSE - ${data.nyse.symbol}:\n`;
+          resposta += `- Preço: $ ${precoNYSE}\n`;
+          resposta += `- Última atualização: ${data.nyse.lastUpdated}\n`;
+          resposta += `- Variação: ${data.nyse.change} (${data.nyse.changePercent})\n\n`;
+        }
+      
+        if (data.cryptos) {
+          const precoCrypto = parseFloat(data.cryptos.price).toFixed(9);
+          resposta += `Criptomoeda - ${ativo} - ${data.cryptos.name}:\n`;
+          resposta += `- Preço: $ ${precoCrypto}\n`;
+          resposta += `- Última atualização: ${data.cryptos.lastUpdated}\n\n`;
+        }
+      
+        return resposta;
+      };     
+      
+        // Função para converter arquivos de áudio
+        const convertAudioFormat = (inputPath, outputPath) => {
+            const ffmpegPath = path.resolve(__dirname, '..', 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
+            const command = `"${ffmpegPath}" -y -i "${inputPath}" -c:a opus -ac 1 -ar 16000 -f wav -acodec pcm_s16le "${outputPath}"`;
+          
+            return new Promise((resolve, reject) => {
+              const childProcess = exec(command, (error) => {
+                if (error) {
+                  console.error(`Error executing ffmpeg command: ${error}`);
+                  reject(error);
+                } else {
+                  resolve();
+                }
+              });
+          
+              childProcess.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+              });
+            });
+          };
+          
+      
+
     switch (command) {
       // NOVOS COMANDOS
-            case '!gerar':
-                if (args.length < 2) {
-                client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !gerar <prompt>', id);
-                } else {
-                await processarComandoGerar(client, message, args);
+
+      case '!gerar':
+        if (args.length < 2) {
+        client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !gerar <prompt>', id);
+        } else {
+        await processarComandoGerar(client, message, args);
+        }
+        break
+
+        case '!transcreva':
+            if (quotedMsg && quotedMsg.type === 'ptt') {
+                try {
+                  const audioFolderPath = path.resolve(__dirname, '..', 'media', 'audios');
+                  const speechClient = new speech.SpeechClient({
+                    credentials: {
+                      client_email: process.env.GOOGLE_CLIENT_EMAIL_STT.replace(/\\n/g, '\n'),
+                      private_key: process.env.GOOGLE_PRIVATE_KEY_STT,
+                    },
+                  });
+                  const mediaData = await decryptMedia(quotedMsg);
+                  const audioBuffer = Buffer.from(mediaData, 'base64');
+          
+                  const tempAudioPath = path.join(audioFolderPath, 'temp_audio.wav');
+                  await fs.writeFile(tempAudioPath, audioBuffer);
+          
+                  const convertedAudioPath = path.join(audioFolderPath, 'converted_audio.wav');
+                  await convertAudioFormat(tempAudioPath, convertedAudioPath);
+          
+                  const convertedAudioBuffer = await fs.readFile(convertedAudioPath);
+                  const audio = { content: convertedAudioBuffer };
+                  const config = { encoding: 'LINEAR16', sampleRateHertz: 16000, languageCode: 'pt-BR' };
+                  const request = { audio, config };
+          
+                  const [response] = await speechClient.recognize(request);
+                  const transcription = response.results.map(result => result.alternatives[0].transcript).join('\n');
+          
+                  await client.reply(from, transcription, id);
+                } catch (error) {
+                  console.error(error);
+                  await client.reply(from, 'Ocorreu um erro ao carregar as credenciais do Google Cloud.', id);
                 }
-                break
+              } else {
+                await client.reply(from, 'Você precisa responder a uma mensagem de áudio.', id);
+              }
+              break
+
+
+        case '!cotacao':
+            if (args.length < 2) {
+            client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !cotacao <ativo>', id);
+            } else {
+            const ativo = args[1].toUpperCase(); // Obtém o ativo do segundo argumento
+            api.getCotacao(ativo)
+                .then((data) => {
+                const resposta = criarRespostaCotacao(data, ativo);
+                client.reply(from, resposta, id);
+                })
+                .catch((error) => {
+                console.error('Erro ao obter cotação:', error);
+                client.reply(from, 'Não foi possível obter a cotação no momento.', id);
+                });
+            }
+            break
 
             case '!simi':
                 simiAtivo = !simiAtivo;

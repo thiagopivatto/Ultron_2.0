@@ -11,7 +11,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "1.1.0",
+    "@google-cloud/speech": "^5.5.0",
     "@google-cloud/text-to-speech": "^4.2.2",
+    "@google-cloud/translate": "^7.2.1",
     "@open-wa/wa-automate": "^4.66.3",
     "@open-wa/wa-decrypt": "4.4.0",
     "@vitalets/google-translate-api": "7.0.0",
@@ -30,6 +32,7 @@
     "express": "^4.18.2",
     "express-handlebars": "^7.0.7",
     "fbdl-core": "1.0.2",
+    "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "2.1.2",
     "form-data": "4.0.0",
     "format-duration-time": "1.5.4",

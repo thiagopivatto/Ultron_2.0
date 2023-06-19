@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "chatgpt-api-pivatto",
+  "private_key_id": "598c78bd4e0b912127c934cdac07e4186f39b62f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQCq8kbFDRYWXpn1\n9zrpYlZnh6vm9hu7/ofeRhFwD515JoZiiKi8qk0CCFNwsCpMuKkYJoEND+wCNWTK\nQV2ahBnvv3Z7sM5iByrXzb+ncbhCX4am+mld6SyZ6Ls/D0uOvGxhNl3to5jZ7WLY\n81axKKBpPreT3xJ1vXPp2lh9FqcuftAoaWKJx6EZkQImR16tFJxmY5zf2fguuJ6z\n/sG+6pb+5qdgzIvLjR7THiTRzAeP5uTbKXEkGAakq6Z9y7+86Ine+7m+yq4Yw4ve\nEVI3nlJsj2TJMcdgXvYPSuakie3/nXR5zscpAPEYGaEpWLfq+739VcYpQ8mm25TF\nYxVE7eoTAgMBAAECgf8KIKW7XDXIHX1W6nloWkBu4cV4FByQhq6F/KC2guD8Icwp\ntO706SH8J4IfVaXWkG90KX57x6BegSCiMD0wv6LJvA4eRdtJniMWUJo00V1D5ro+\nKkJpIzyr4Z3g89xbbc5TSWVHLuoJ/zEGqWP5cEQQotE9cXnRKpLeHTwg17a6ilqj\n4ewf/7xTw28orqqT9ca18TIYBynvwqQji8pngw8JmwWvLsKYIuUv9cOTuPGTwM9e\nklcoEFBT0byb3zUnJbLfyrSO9xhhuQz1dGCAT77JF04HFUhpT1G2DdBeONwQpvjI\ngQoxQfvMBZBgBhGz6NYQMy+6MfCr9DwPOF6akd0CgYEA2+qwtAFNRhKd6tvj0I3L\nJZtl3Axxask7ARLMqjSCE7J7UAZm5RjlnguI64Wjrr1oUKIWBqcnjFBm2zUYtFHu\nGuQ3HuIiiQ7+i46IuM8UUQHawhVaokrEbt4WL0T89DridAjVhLxsec3wcPk/21XN\n8WJMHmUekczF24F9EVPwstUCgYEAxv6mv0kaPwQm8TeLE5NOvQ2if4OtWItXu3am\nn2krPvJv9aAVAav2cuCH+sgqz4un3hwgwKjBJ8VdB5LSRhNn1rSZELrVX+KkYoTl\nZLQgkhCiO2yW05hCPbHwxsFnX9KYnxG7ixBZO0oSN45EACUC8aLeDkS9HfgAzLrQ\ntVR5jUcCgYEAyzBkY2xwgTXiQoU4UBEyiWSzEEVO5WNX6P39q6UoKhrWZHIFz9bZ\nENWHhFTNjz3hi962ix8WI0aGQjMkyDaK0L3bT+WQEyKPfVIMcPSjyNT10iz4uMps\nBCOeS75qGR3u7VbcMPAHKeNlLHyey4DT7xrrSYoUXJHenZlefQwZcKECgYBpbpSk\ndrPsPWPwm/AY8AxgyC+Xhgm7ByD1lvjTLyKVmFfPeQCIQTczSFljetiL3D+Vw6tq\nyD6GtuACWj0EmdWDgW4z2fmhcvCLrkPn5jP3j86U04TaGSrHi1a5x9DgiTEJ3phS\nJthQPH+IZd0LgpCbvCIQx0S38yVhU32vBVHdkwKBgBY/DCYk7V8TYuIg136UZtTk\nH4/ykVXagl7prK6tHozywfbQR7XpVBm+bsCr5FTvyNi8bbz+NxE/fECzMce9KYDS\n85chI2lz/tBuMAbkCLXrDPSFaLHjpiW2XLyHQ/1sRSFQj0wkHsEd6yKy6g2A6Qmu\ny3Q/yg6jD9KucvNpf+Bj\n-----END PRIVATE KEY-----\n",
+  "client_email": "traducao@chatgpt-api-pivatto.iam.gserviceaccount.com",
+  "client_id": "101508494046481514871",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/traducao%40chatgpt-api-pivatto.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

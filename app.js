@@ -63,13 +63,13 @@ async function start(client) {
       });
 
       let simiAtivo = false;
-      async function handleSimiMessage (client, message, simiAtivo) {
+      async function handleSimiMessage(client, message, simiAtivo) {
         if (simiAtivo && message.fromMe) {
           const userMessage = message.body;
           const answer = await callSimSimi(userMessage);
           await client.sendText(message.from, answer);
         }
-      };
+      };      
 
       // Ouvindo mensagens
       client.onMessage(async (message) => {
@@ -78,13 +78,10 @@ async function start(client) {
         if (!await antiFlood(client, message)) return;
         if (!await antiPorno(client, message)) return;
         try {
-          if (simiAtivo) {
-            await handleSimiMessage(client, message, simiAtivo);
-          } else {
-              // Executa a checagem de mensagens
-              await checagemMensagem(client, message);
-              // Executa a chamada de comandos
-              await chamadaComando(client, message);
+          if (simiAtivo) { await handleSimiMessage(client, message, simiAtivo)
+          }else{
+            await checagemMensagem(client, message);
+            await chamadaComando(client, message);
           }
         } catch (err) {
           consoleErro(err);
