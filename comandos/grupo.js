@@ -576,16 +576,16 @@ module.exports = grupo = async(client,message) => {
                 await client.sendTextWithMentions(from, respostaMarcar)
                 break  
 
-            case '!bantodos':
-                var donoGrupo = sender.id === chat.groupMetadata.owner
-                if (!donoGrupo) return client.reply(from, msgs_texto.permissao.apenas_dono_grupo, id)           
-                if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
-                var membrosGrupo = await client.getGroupMembers(groupId)
-                for(let membro of membrosGrupo){
-                    if (!groupAdmins.includes(membro.id)) await client.removeParticipant(groupId, membro.id)
-                }
-                client.reply(from, msgs_texto.grupo.banirtodos.banir_sucesso, id)
-                break  
+            // case '!bantodos':
+            //     var donoGrupo = sender.id === chat.groupMetadata.owner
+            //     if (!donoGrupo) return client.reply(from, msgs_texto.permissao.apenas_dono_grupo, id)           
+            //     if (!isBotGroupAdmins) return client.reply(from, msgs_texto.permissao.bot_admin, id)
+            //     var membrosGrupo = await client.getGroupMembers(groupId)
+            //     for(let membro of membrosGrupo){
+            //         if (!groupAdmins.includes(membro.id)) await client.removeParticipant(groupId, membro.id)
+            //     }
+            //     client.reply(from, msgs_texto.grupo.banirtodos.banir_sucesso, id)
+            //     break  
             
             case '!add':
                 if (args.length === 1) return client.reply(from, erroComandoMsg(command), id)
@@ -617,30 +617,30 @@ module.exports = grupo = async(client,message) => {
                 }
                 break
 
-            case '!ban':
-                if (!isGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
-                if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id)
-                var usuariosSelecionados = []
-                if(mentionedJidList.length === 0 && quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)
-                else if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
-                else return client.reply(from, erroComandoMsg(command), id)
-                var idParticipantesAtuais = await client.getGroupMembersId(groupId)
-                for(let usuario of usuariosSelecionados){
-                    if(idParticipantesAtuais.includes(usuario)){
-                        if(!groupAdmins.includes(usuario)){
-                            client.removeParticipant(groupId, usuario).then(()=>{
-                                if(usuariosSelecionados.length === 1) {
-                                    client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_ban, usuario.replace("@c.us", ""), msgs_texto.grupo.banir.motivo, username))
-                                }
-                            })
-                        } else {
-                            if(usuariosSelecionados.length === 1) client.reply(from, msgs_texto.grupo.banir.banir_admin, id)
-                        }
-                    } else {
-                        if(usuariosSelecionados.length === 1) client.reply(from,  msgs_texto.grupo.banir.banir_erro, id)
-                    }
-                }     
-                break
+            // case '!ban':
+            //     if (!isGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
+            //     if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id)
+            //     var usuariosSelecionados = []
+            //     if(mentionedJidList.length === 0 && quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)
+            //     else if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
+            //     else return client.reply(from, erroComandoMsg(command), id)
+            //     var idParticipantesAtuais = await client.getGroupMembersId(groupId)
+            //     for(let usuario of usuariosSelecionados){
+            //         if(idParticipantesAtuais.includes(usuario)){
+            //             if(!groupAdmins.includes(usuario)){
+            //                 client.removeParticipant(groupId, usuario).then(()=>{
+            //                     if(usuariosSelecionados.length === 1) {
+            //                         client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_ban, usuario.replace("@c.us", ""), msgs_texto.grupo.banir.motivo, username))
+            //                     }
+            //                 })
+            //             } else {
+            //                 if(usuariosSelecionados.length === 1) client.reply(from, msgs_texto.grupo.banir.banir_admin, id)
+            //             }
+            //         } else {
+            //             if(usuariosSelecionados.length === 1) client.reply(from,  msgs_texto.grupo.banir.banir_erro, id)
+            //         }
+            //     }     
+            //     break
 
             case '!unban':
                 if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id);
@@ -648,7 +648,6 @@ module.exports = grupo = async(client,message) => {
                     const usuarioBanido = quotedMsgObj.author;
                     client.addParticipant(groupId, usuarioBanido).then(() => {
                     }).catch(() => {
-                        client.reply(from, "NÃO FOI POSSÍVEL ADICIONAR ESSA PESSOA", id);
                     });
                 } else {
                     client.reply(from, erroComandoMsg(command), id);

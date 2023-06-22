@@ -1,5 +1,5 @@
 //REQUERINDO MÓDULOS
-const { decryptMedia } = require('@open-wa/wa-decrypt')
+const { decryptMedia, mediaTypes } = require('@open-wa/wa-decrypt')
 const fs = require('fs-extra')
 const msgs_texto = require('../lib/msgs')
 const {criarTexto, erroComandoMsg, obterNomeAleatorio, removerNegritoComando} = require("../lib/util")
@@ -525,11 +525,15 @@ module.exports = utilidades = async (client, message) => {
 
             //========= INÍCIO CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//
             case '!chat':
-                const userMessage = message.body.replace('!chat', '').trim();
-                const answer = await api.callChatGPT(userMessage, message);
-                const respostaText = `${answer}`;
-                var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
-                await client.sendText(from, respostaTexto);
+                if (quotedMsg || !isMedia){
+                    const userMessage = message.body.replace('!chat', '').trim();
+                    const answer = await api.callChatGPT(userMessage, message);
+                    const respostaText = `${answer}`;
+                    var respostaTexto = criarTexto(msgs_texto.utilidades.chat.resposta, respostaText)
+                    await client.sendText(from, respostaTexto);
+                } else {
+                    client.reply(from, err.message, id)
+                }
                 break
             //========= FIM CONFIGURAÇÃO CHAT GPT 3==== utilidades.js ======//  
                 
@@ -586,16 +590,6 @@ module.exports = utilidades = async (client, message) => {
                 }
                 break
 
-            case "!acao":
-                if (args.length === 1) return client.reply(from, erroComandoMsg(command), id)
-                try {
-                    var usuarioTexto = await api.obterAcao(usuarioTexto)
-                    var respostaAcaoTexto = criarTexto(msgs_texto.utilidades.acao.resposta, acao.texto)
-                    client.reply(from, respostaAcaoTexto, id)
-                } catch (err) {
-                    client.reply(from, err.message, id)
-                }
-                break
 
         }
     } catch(err){
