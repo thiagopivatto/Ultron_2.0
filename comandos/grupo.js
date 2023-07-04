@@ -620,26 +620,30 @@ module.exports = grupo = async(client,message) => {
             // case '!ban':
             //     if (!isGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.apenas_admin, id)
             //     if (!isBotGroupAdmins && !isOwner) return client.reply(from, msgs_texto.permissao.bot_admin, id)
-            //     var usuariosSelecionados = []
-            //     if(mentionedJidList.length === 0 && quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)
-            //     else if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
-            //     else return client.reply(from, erroComandoMsg(command), id)
-            //     var idParticipantesAtuais = await client.getGroupMembersId(groupId)
-            //     for(let usuario of usuariosSelecionados){
-            //         if(idParticipantesAtuais.includes(usuario)){
-            //             if(!groupAdmins.includes(usuario)){
-            //                 client.removeParticipant(groupId, usuario).then(()=>{
-            //                     if(usuariosSelecionados.length === 1) {
-            //                         client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_ban, usuario.replace("@c.us", ""), msgs_texto.grupo.banir.motivo, username))
-            //                     }
-            //                 })
+            //     try {
+            //         var usuariosSelecionados = []
+            //         if(mentionedJidList.length === 0 && quotedMsg) usuariosSelecionados.push(quotedMsgObj.author)
+            //         else if(mentionedJidList.length > 0) usuariosSelecionados = mentionedJidList
+            //         else return client.reply(from, erroComandoMsg(command), id)
+            //         var idParticipantesAtuais = await client.getGroupMembersId(groupId)
+            //         for(let usuario of usuariosSelecionados){
+            //             if(idParticipantesAtuais.includes(usuario)){
+            //                 if(!groupAdmins.includes(usuario)){
+            //                     client.removeParticipant(groupId, usuario).then(()=>{
+            //                         if(usuariosSelecionados.length === 1) {
+            //                             client.sendTextWithMentions(from, criarTexto(msgs_texto.geral.resposta_ban, usuario.replace("@c.us", ""), msgs_texto.grupo.banir.motivo, username))
+            //                         }
+            //                     })
+            //                 } else {
+            //                     if(usuariosSelecionados.length === 1) client.reply(from, msgs_texto.grupo.banir.banir_admin, id)
+            //                 }
             //             } else {
-            //                 if(usuariosSelecionados.length === 1) client.reply(from, msgs_texto.grupo.banir.banir_admin, id)
+            //                 if(usuariosSelecionados.length === 1) client.reply(from,  msgs_texto.grupo.banir.banir_erro, id)
             //             }
-            //         } else {
-            //             if(usuariosSelecionados.length === 1) client.reply(from,  msgs_texto.grupo.banir.banir_erro, id)
-            //         }
-            //     }     
+            //         } 
+            //     } catch (err) {
+            //         throw err
+            //     }
             //     break
 
             case '!unban':

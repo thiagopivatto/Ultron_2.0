@@ -14,6 +14,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const speech = require('@google-cloud/speech');
 const { exec } = require('child_process');
+const os = require('os');
+const { spawn } = require('child_process');
 
 let simiAtivo = false;
 
@@ -157,6 +159,52 @@ module.exports = utilidades = async (client, message) => {
     switch (command) {
       // NOVOS COMANDOS
 
+      case '!spleeter':
+        if (!quotedMsg || (quotedMsg.type !== 'audio' && quotedMsg.type !== 'ptt')) {
+          return client.reply(from, 'Por favor, responda a uma mensagem de áudio para converter.', id);
+        }
+        const mediaData1 = await decryptMedia(quotedMsg);
+        const audioPath = `./media/audios/${obterNomeAleatorio('.mp3')}`;
+        fs.writeFileSync(audioPath, mediaData1, 'base64');
+      
+        const separationType = '2stems';
+        const outputPath = './media/audios';
+      
+        const spleeterCommand = (os.platform() === 'win32') ? '../spleeter-env/scripts/activate.bat' : '../spleeter-env/scripts/activate.bat';
+        const spleeter = spawn(spleeterCommand, ['separate', '-i', audioPath, '-p', `spleeter:${separationType}`, '-o', outputPath]);
+      
+        spleeter.stderr.on('data', (data) => {
+          console.error(`stderr: ${data}`);
+        });
+      
+        spleeter.on('close', (code) => {
+          console.log(`Spleeter process exited with code ${code}`);
+      
+          let resultFileName;
+          if (separationType === '2stems') {
+            resultFileName = 'vocals.wav';
+          } else if (separationType === '4stems') {
+            resultFileName = 'accompaniment.wav';
+          }
+      
+          if (resultFileName) {
+            const audioModifiedPath = path.join(outputPath, resultFileName);
+            const audioData = fs.readFileSync(audioModifiedPath);
+      
+            client.sendPtt(from, audioData, id).then(() => {
+              fs.unlinkSync(audioPath);
+              fs.unlinkSync(audioModifiedPath);
+            }).catch((err) => {
+              fs.unlinkSync(audioPath);
+              console.error('Erro ao enviar o áudio convertido:', err);
+            });
+          } else {
+            console.error('Tipo de separação não reconhecido:', separationType);
+          }
+        });
+        break;
+      
+
       case '!gerar':
         if (args.length < 2) {
         client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !gerar <prompt>', id);
@@ -267,27 +315,34 @@ module.exports = utilidades = async (client, message) => {
                 break
 
             case "!audio":
-                if(args.length === 1) return client.reply(from, erroComandoMsg(command), id)
-                var efeitosSuportados = ['estourar','x2', 'reverso', 'grave', 'agudo', 'volume'], tipoEfeito = body.slice(7).trim()
-                if(!efeitosSuportados.includes(tipoEfeito)) return client.reply(from, erroComandoMsg(command), id)
-                if(quotedMsg && (quotedMsg.type === "ptt" || quotedMsg.type === "audio") ){
-                    var mediaData = await decryptMedia(quotedMsg, uaOverride)
-                    var audioOriginal = path.resolve(`./media/audios/${obterNomeAleatorio(".mp3")}`)
-                    fs.writeFileSync(audioOriginal, mediaData, "base64")
-                    try{
-                        var audioEditado = await api.obterAudioModificado(audioOriginal, tipoEfeito)
-                        client.sendFile(from, audioEditado, "audio.mp3","", id).then(()=>{
-                            fs.unlinkSync(audioEditado)
-                            fs.unlinkSync(audioOriginal)
-                        })
-                    } catch(err){
-                        fs.unlinkSync(audioOriginal)
-                        client.reply(from, err.message, id)
+                if (args.length === 1) return client.reply(from, erroComandoMsg(command), id);
+                var efeitosSuportados = ['estourar', 'x2', 'reverso', 'grave', 'agudo', 'volume', 'vocal', 'instrumental'];
+                var tipoEfeito = body.slice(7).trim();
+                if (!efeitosSuportados.includes(tipoEfeito)) return client.reply(from, erroComandoMsg(command), id);
+                if (quotedMsg && (quotedMsg.type === "ptt" || quotedMsg.type === "audio")) {
+                    var mediaData = await decryptMedia(quotedMsg, uaOverride);
+                    var audioOriginal = path.resolve(`./media/audios/${obterNomeAleatorio(".mp3")}`);
+                    fs.writeFileSync(audioOriginal, mediaData, "base64");
+                    try {
+                    var audioEditado;
+                    if (tipoEfeito === "vocal" || tipoEfeito === "instrumental") {
+                        audioEditado = await api.obterAudioModificado(audioOriginal, tipoEfeito, true, true);
+                    } else {
+                        audioEditado = await api.obterAudioModificado(audioOriginal, tipoEfeito);
+                    }
+                    client.sendFile(from, audioEditado, "audio.mp3", "", id).then(() => {
+                        fs.unlinkSync(audioEditado);
+                        fs.unlinkSync(audioOriginal);
+                    });
+                    } catch (err) {
+                    fs.unlinkSync(audioOriginal);
+                    client.reply(from, err.message, id);
                     }
                 } else {
-                    client.reply(from, erroComandoMsg(command), id)
+                    client.reply(from, erroComandoMsg(command), id);
                 }
-                break
+                break;
+                  
 
             case "!qualmusica":
                 var dadosMensagem = quotedMsg ? quotedMsg : message

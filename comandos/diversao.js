@@ -195,7 +195,6 @@ module.exports = diversao = async (client, message) => {
                 if (isNaN(qtdUsuarios)) return client.reply(from, msgs_texto.diversao.top.erro_qtd, id)
                 if (qtdUsuarios > 50) return client.reply(from, msgs_texto.diversao.top.limite_qtd, id)
                 if (qtdUsuarios > idParticipantesAtuais.length) return client.reply(from, msgs_texto.diversao.top.erro_qtd, id)
-                if (args.length === 1) return await client.reply(from, erroComandoMsg(command), id)
                 var respostaTexto = criarTexto(msgs_texto.diversao.top.resposta_titulo, qtdUsuarios, temaRanking)
                 for (let i = 0; i < qtdUsuarios; i++) {
                     var medalha = ""
@@ -262,7 +261,6 @@ module.exports = diversao = async (client, message) => {
 
             case "!vod":
                 if (!isGroupMsg) return await client.reply(from, "Este comando só pode ser usado em grupos.", id);
-                const args = body.split(' ');
                 if (args.length < 3 || args.length > 4) {
                     return await client.reply(from, "Formato inválido. Use !vod [vdd/dsf] [nível]", id);
                 }

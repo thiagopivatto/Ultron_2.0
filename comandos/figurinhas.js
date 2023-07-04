@@ -72,9 +72,9 @@ module.exports = figurinhas = async(client,message) => {
                         discord: "701084178112053288"
                     }
                     var configConversao = {
-                        endTime: "00:00:11.0",
+                        endTime: "00:00:21.0",
                         crop: true,
-                        fps:9,
+                        fps:24,
                         square:240
                     }
 
@@ -90,7 +90,7 @@ module.exports = figurinhas = async(client,message) => {
                         duracao: (isMedia)? message.duration : quotedMsg.duration,
                         mensagem: (isMedia)? message : quotedMsg
                     }
-                    if((dadosMensagem.mimetype === 'video/mp4' || dadosMensagem.mimetype === 'image/gif') && dadosMensagem.duracao < 11){
+                    if((dadosMensagem.mimetype === 'video/mp4' || dadosMensagem.mimetype === 'image/gif') && dadosMensagem.duracao < 21){
                         await client.reply(from, msgs_texto.geral.espera , id)
                         var mediaData = await decryptMedia(dadosMensagem.mensagem, uaOverride)
                         var base64 = `data:${dadosMensagem.mimetype};base64,${mediaData.toString('base64')}`

@@ -11,7 +11,6 @@ const db = require('../lib/database')
 const fs = require("fs-extra")
 const path = require("path")
 const {botAlterarLimitador, botInfo, botAlterarLimiteDiario, botQtdLimiteDiario, botAlterarLimitarMensagensPv, botAlterarAutoSticker, botAlterarAntitrava, botAlterarPvLiberado} = require('../lib/bot');
-const { ClientRequest } = require('http');
 const cron = require('node-cron');
 let cronEnabled = false; // Estado inicial do cron
 
