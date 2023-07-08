@@ -264,7 +264,6 @@ module.exports = diversao = async (client, message) => {
                 if (args.length < 3 || args.length > 4) {
                     return await client.reply(from, "Formato inválido. Use !vod [vdd/dsf] [nível]", id);
                 }
-                
                 const tipoEscolha = args[1].toLowerCase();
                 const nivel = parseInt(args[2]);
                 const tipoEscolhaMapeado = tipoEscolha === 'vdd' ? 'truth' : tipoEscolha === 'dsf' ? 'dare' : '';
@@ -274,7 +273,7 @@ module.exports = diversao = async (client, message) => {
                 if (isNaN(nivel) || nivel < 1 || nivel > 5) {
                     return await client.reply(from, "Nível inválido. Use um número de 1 a 5.", id);
                 }
-                const frasesVOD = await axios.get("https://gist.githubusercontent.com/deepakshrma/9498a19a3ed460fc662c536d138c29b1/raw/f29d323b9b3f0a82f66ed58c7117fb9b599fb8d5/truth-n-dare.json");
+                const frasesVOD = await axios.get("https://gist.githubusercontent.com/thiagopivatto/3ed7f417a37590b75745cc1c4cba450a/raw/a960f63a10323565a21c32d13a457edca67ebb75/vod.json");
                 const frasesFiltradas = frasesVOD.data.filter(frase => frase.level === nivel.toString() && frase.type.toLowerCase() === tipoEscolhaMapeado);
                 if (frasesFiltradas.length > 0) {
                     await api.traduzirFrases(frasesFiltradas);

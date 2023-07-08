@@ -504,7 +504,7 @@ module.exports = utilidades = async (client, message) => {
                 
                 let idioma = 'pt-BR'; // Definir o idioma padrão como pt-BR
                 
-                if (texto.includes(';') || !texto.startsWith('!voz')) {
+                if (texto.includes(';')) {
                     const [lang, ...textParts] = texto.split(';');
                     idioma = lang.toLowerCase().trim(); // Extrair o idioma e remover espaços em branco
                     texto = textParts.join(';').trim(); // Reunir o restante do texto
@@ -526,8 +526,7 @@ module.exports = utilidades = async (client, message) => {
                     console.error(err);
                     return client.reply(from, 'Ocorreu um erro ao gerar o áudio.', id);
                 }
-                
-            break
+                break 
                   
 
             case '!falar':
