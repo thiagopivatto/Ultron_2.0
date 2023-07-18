@@ -109,9 +109,12 @@ Após a criação das chaves de API, abra o arquivo .env na raiz do projeto e ed
     API_DEEPAI= recebe a chave da conta que voce criar no site deepai.org 
     # OPENAI - CHAT GPT 3
     OPENAI_API_KEY= recebe a chave da conta que voce criar no site openai.com/
-    # GOOGLE CLOUD - TRANSCRIÇÃO DE VOZ
+    # GOOGLE CLOUD - SERVIÇOS EM NUVEM DO GOOGLE
     GOOGLE_CLIENT_EMAIL= chave do projeto criado no site https://cloud.google.com/
     GOOGLE_PRIVATE_KEY= chave privada do projeto criado no site https://cloud.google.com/
+    # GOOGLE CLOUD TTS - TRANSCRIÇÃO DE VOZ
+    GOOGLE_CLIENT_EMAIL_TTS= chave do projeto criado no site https://cloud.google.com/
+    GOOGLE_PRIVATE_KEY_TTS= chave privada do projeto criado no site https://cloud.google.com/
     # SIM SIMI - CONVERSA MAIS NATURAL
     SIMSIMI_API_KEY= chave gerada no site https://workshop.simsimi.com/
     # REPLICATE - GERADOR DE IMAGENS ATRAVÉS DE IA
