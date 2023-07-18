@@ -219,8 +219,8 @@ module.exports = utilidades = async (client, message) => {
                   const audioFolderPath = path.resolve(__dirname, '..', 'media', 'audios');
                   const speechClient = new speech.SpeechClient({
                     credentials: {
-                      client_email: process.env.GOOGLE_CLIENT_EMAIL_STT.replace(/\\n/g, '\n'),
-                      private_key: process.env.GOOGLE_PRIVATE_KEY_STT,
+                      client_email: process.env.GOOGLE_CLIENT_EMAIL_TTS.replace(/\\n/g, '\n'),
+                      private_key: process.env.GOOGLE_PRIVATE_KEY_TTS,
                     },
                   });
                   const mediaData = await decryptMedia(quotedMsg);
