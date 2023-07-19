@@ -5,6 +5,7 @@ const path = require("path")
 const api = require('../lib/api')
 const axios = require('axios')
 
+
 module.exports = diversao = async (client, message) => {
     try {
         const { id, from, sender, isGroupMsg, chat, caption, quotedMsg, quotedMsgObj, mentionedJidList, body } = message
@@ -286,6 +287,315 @@ module.exports = diversao = async (client, message) => {
                 break
 
 
+
+
+
+
+
+
+
+
+                //--------------------FUTEBOL--------------------
+
+                case '!buscatime':
+                    if (args.length < 2) {
+                      client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !buscatime <nomeTime>', id);
+                    } else {
+                      const nomeTime = args.slice(1).join(' '); // Obtém o nome do time a ser buscado
+                      api.obterIDTime(nomeTime)
+                        .then((data) => {
+                          if (data.data.length > 0) {
+                            const timeEncontrado = data.data[0];
+                            const resposta = `⚽️ Informações do time ${timeEncontrado.name} ⚽️\n\n🆔 ID do time: ${timeEncontrado.id}\n🏟️ ID do estádio: ${timeEncontrado.venue_id}\n🌍 País: ${timeEncontrado.country}`;
+                            client.sendFileFromUrl(from, timeEncontrado.logo, 'logo.png', resposta, id);
+                          } else {
+                            client.reply(from, 'Time não encontrado.', id);
+                          }
+                        })
+                        .catch((error) => {
+                          console.error('Erro ao buscar o time:', error);
+                          client.reply(from, 'Não foi possível buscar o time no momento.', id);
+                        });
+                    }
+                    break;
+                    
+
+                    case '!jogadores':
+                      if (args.length < 2) {
+                        client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !jogadores <nomeTime>', id);
+                      } else {
+                        const nomeTime = args.slice(1).join(' ');
+                        api.obterIDTime(nomeTime)
+                          .then((data) => {
+                            const timesEncontrados = data.data.filter((time) => time.name.toLowerCase() === nomeTime.toLowerCase());
+                            if (timesEncontrados.length > 0) {
+                              const timeEncontrado = timesEncontrados[0];
+                              api.obterJogadoresDoTime(timeEncontrado.id)
+                                .then(async (jogadores) => {
+                                  if (jogadores.data.length > 0) {
+                                    const jogadoresOrdenados = jogadores.data
+                                      .sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' })) // Ordena os jogadores por nome em ordem alfabética (considerando acentos)
+                                      .filter((jogador, index, array) => {
+                                        // Filtra os jogadores para evitar nomes repetidos
+                                        return array.findIndex((j) => j.name === jogador.name) === index;
+                                      });
+                    
+                                    let listaGoleiros = [];
+                                    let listaDefensores = [];
+                                    let listaMeioCampistas = [];
+                                    let listaAtacantes = [];
+                                    let listaNaoDefinidos = [];
+                    
+                                    for (const jogador of jogadoresOrdenados) {
+                                      const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                    
+                                      if (posicaoPrincipal) {
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                    
+                                        if (posicaoTraduzida.toLowerCase().includes('goleiro')) {
+                                          listaGoleiros.push(jogador);
+                                        } else if (posicaoTraduzida.toLowerCase().includes('zagueiro') || posicaoTraduzida.toLowerCase().includes('ala') || posicaoTraduzida.toLowerCase().includes('lateral') || posicaoTraduzida.toLowerCase().includes('defensor') || posicaoTraduzida.toLowerCase().includes('líbero')) {
+                                          listaDefensores.push(jogador);
+                                        } else if (posicaoTraduzida.toLowerCase().includes('volante') || posicaoTraduzida.toLowerCase().includes('meia')) {
+                                          listaMeioCampistas.push(jogador);
+                                        } else if (posicaoTraduzida.toLowerCase().includes('atacante') || posicaoTraduzida.toLowerCase().includes('ponta') || posicaoTraduzida.toLowerCase().includes('extremo') || posicaoTraduzida.toLowerCase().includes('centroavante')) {
+                                          listaAtacantes.push(jogador);
+                                        } else {
+                                          listaNaoDefinidos.push(jogador);
+                                        }
+                                      } else {
+                                        listaNaoDefinidos.push(jogador);
+                                      }
+                                    }
+                    
+                                    // // Ordenar os jogadores de cada lista em ordem alfabética
+                                    // listaGoleiros.sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' }));
+                                    // listaDefensores.sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' }));
+                                    // listaMeioCampistas.sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' }));
+                                    // listaAtacantes.sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' }));
+                                    // listaNaoDefinidos.sort((jogadorA, jogadorB) => jogadorA.name.localeCompare(jogadorB.name, 'pt', { sensitivity: 'base' }));
+
+                                    // Ordenar os jogadores pelo número da camisa em ordem crescente
+                                    listaGoleiros.sort((jogadorA, jogadorB) => jogadorA.shirt_number - jogadorB.shirt_number);
+                                    listaDefensores.sort((jogadorA, jogadorB) => jogadorA.shirt_number - jogadorB.shirt_number);
+                                    listaMeioCampistas.sort((jogadorA, jogadorB) => jogadorA.shirt_number - jogadorB.shirt_number);
+                                    listaAtacantes.sort((jogadorA, jogadorB) => jogadorA.shirt_number - jogadorB.shirt_number);
+                                    listaNaoDefinidos.sort((jogadorA, jogadorB) => jogadorA.shirt_number - jogadorB.shirt_number);
+                    
+                                    let listaJogadores = `⚽️ *JOGADORES DO TIME ${timeEncontrado.name}* ⚽️\n\n`;
+                    
+                                    if (listaGoleiros.length > 0) {
+                                      listaJogadores += `⭐️ *GOLEIROS* ⭐️\n\n`;
+                                      for (const jogador of listaGoleiros) {
+                                        const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                                        listaJogadores += `*_${jogador.name.toUpperCase()}_*\n👕 Número da camisa: ${jogador.shirt_number}\n⚽️ Posição: ${posicaoTraduzida}\n📅 Dt. Nascimento: ${jogador.date_birth_at} ️\n⬆️ Altura: ${jogador.height}\n\n`;
+                                      }
+                                    }
+                    
+                                    if (listaDefensores.length > 0) {
+                                      listaJogadores += `⚔️ *DEFENSORES* ⚔️\n\n`;
+                                      for (const jogador of listaDefensores) {
+                                        const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                                        listaJogadores += `*_${jogador.name.toUpperCase()}_*\n👕 Número da camisa: ${jogador.shirt_number}\n⚽️ Posição: ${posicaoTraduzida}\n📅 Dt. Nascimento: ${jogador.date_birth_at} ️\n⬆️ Altura: ${jogador.height}\n\n`;
+                                      }
+                                    }
+                    
+                                    if (listaMeioCampistas.length > 0) {
+                                      listaJogadores += `⚽️ *MEIAS* ⚽️\n\n`;
+                                      for (const jogador of listaMeioCampistas) {
+                                        const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                                        listaJogadores += `*_${jogador.name.toUpperCase()}_*\n👕 Número da camisa: ${jogador.shirt_number}\n⚽️ Posição: ${posicaoTraduzida}\n📅 Dt. Nascimento: ${jogador.date_birth_at} ️\n⬆️ Altura: ${jogador.height}\n\n`;
+                                      }
+                                    }
+                    
+                                    if (listaAtacantes.length > 0) {
+                                      listaJogadores += `⚡️ *ATACANTES* ⚡️\n\n`;
+                                      for (const jogador of listaAtacantes) {
+                                        const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                                        listaJogadores += `*_${jogador.name.toUpperCase()}_*\n👕 Número da camisa: ${jogador.shirt_number}\n⚽️ Posição: ${posicaoTraduzida}\n📅 Dt. Nascimento: ${jogador.date_birth_at} ️\n⬆️ Altura: ${jogador.height}\n\n`;
+                                      }
+                                    }
+                    
+                                    if (listaNaoDefinidos.length > 0) {
+                                      listaJogadores += `❓ Jogadores não definidos ❓\n\n`;
+                                      for (const jogador of listaNaoDefinidos) {
+                                        const posicaoPrincipal = jogador.positions && jogador.positions.main && jogador.positions.main.length > 0 ? jogador.positions.main[0] : '';
+                                        const posicaoTraduzida = await api.traduzirPosicao(posicaoPrincipal);
+                                        listaJogadores += `*_${jogador.name.toUpperCase()}_*\n👕 Número da camisa: ${jogador.shirt_number}\n⚽️ Posição: ${posicaoTraduzida}\n📅 Dt. Nascimento: ${jogador.date_birth_at} ️\n⬆️ Altura: ${jogador.height}\n\n`;
+                                      }
+                                    }
+                    
+                                    client.reply(from, listaJogadores, id);
+                                  } else {
+                                    client.reply(from, 'Não foram encontrados jogadores para o time.', id);
+                                  }
+                                })
+                                .catch((error) => {
+                                  console.error('Erro ao buscar os jogadores do time:', error);
+                                  client.reply(from, 'Não foi possível buscar os jogadores do time no momento.', id);
+                                });
+                            } else {
+                              client.reply(from, 'Time não encontrado.', id);
+                            }
+                          })
+                          .catch((error) => {
+                            console.error('Erro ao buscar o time:', error);
+                            client.reply(from, 'Não foi possível buscar o time no momento.', id);
+                          });
+                      }
+                      break;
+                    
+                    
+
+
+
+
+
+
+                      
+                      
+                        case '!infotime':
+                            if (args.length < 2) {
+                              client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !infotime <nomeTime>', id);
+                            } else {
+                              const nomeTime = args.slice(1).join(' ');
+                              api.obterIDTime(nomeTime)
+                                .then((data) => {
+                                  const timesEncontrados = data.data.filter((time) => time.name.toLowerCase() === nomeTime.toLowerCase());
+                                  if (timesEncontrados.length > 0) {
+                                    const timeEncontrado = timesEncontrados[0];
+                                    api.obterDadosDoTime(timeEncontrado.id)
+                                      .then((data) => {
+                                        if (data.data.length > 0) {
+                                          const timeInfo = data.data[0];
+                                          const resposta = `⚽️ Informações do time ${timeInfo.name} ⚽️\n\n🌍 País: ${timeInfo.country}\n🏟️ Estádio: ${timeInfo.venue.stadium.en}\n👥 Capacidade do estádio: ${timeInfo.venue.stadium_capacity}\n⚽️ Último jogo: ${timeInfo.last_match}\n⚽️ Próximo jogo: ${timeInfo.next_match}\n👨‍💼 Treinador: ${timeInfo.manager.name}`;
+                                          client.sendFileFromUrl(from, timeInfo.logo, 'logo.png', resposta, id);
+                                        } else {
+                                          client.reply(from, '⚠️ Dados não encontrados.', id);
+                                        }
+                                      })
+                                      .catch((error) => {
+                                        console.error('Erro ao buscar o time:', error);
+                                        client.reply(from, '⚠️ Não foi possível buscar o time no momento.', id);
+                                      });
+                                  } else {
+                                    client.reply(from, '⚠️ Time não encontrado.', id);
+                                  }
+                                })
+                                .catch((error) => {
+                                  console.error('Erro ao buscar o time:', error);
+                                  client.reply(from, '⚠️ Não foi possível buscar o time no momento.', id);
+                                });
+                            }
+                            break;
+
+                            case '!partidas':
+                                if (args.length < 2) {
+                                  client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !partidas <nomeTime>', id);
+                                } else {
+                                  const nomeTime = args.slice(1).join(' ');
+                                  api.obterIDTime(nomeTime)
+                                    .then((data) => {
+                                      const timesEncontrados = data.data.filter((time) => time.name.toLowerCase() === nomeTime.toLowerCase());
+                                      if (timesEncontrados.length > 0) {
+                                        const timeEncontrado = timesEncontrados[0];
+                                        api.obterJogosDoTime(timeEncontrado.id)
+                                          .then((data) => {
+                                            if (data.data.length > 0) {
+                                              const jogos = data.data;
+
+                                              const indexJogoFinalizado = jogos.findIndex((jogo) => jogo.status === 'finished');
+                                                let ultimosJogos, proximosJogos;
+                                                if (indexJogoFinalizado !== -1) {
+                                                ultimosJogos = jogos.slice(Math.max(indexJogoFinalizado - 5, 0), indexJogoFinalizado);
+                                                proximosJogos = jogos.slice(indexJogoFinalizado, indexJogoFinalizado + 5);
+                                                } else {
+                                                ultimosJogos = [];
+                                                proximosJogos = jogos.slice(0, 5);
+                                                }
+                                              let listaJogos = `⚽️ Lista de jogos do time ${timeEncontrado.name} ⚽️\n\n`;
+                              
+                                              if (ultimosJogos.length > 0) {
+                                                listaJogos += '🔚 Últimos jogos:\n';
+                                                for (const jogo of ultimosJogos) {
+                                                    const homeScore = jogo.home_score.normal_time;
+                                                    const awayScore = jogo.away_score.normal_time;
+                                                    listaJogos += `ID: ${jogo.id}\n⚽️Jogo: ${jogo.name}\n 📅 Data: ${jogo.start_at}\n🏆 Competição: ${jogo.season.name}\n👥 ${jogo.home_team.name} - ${homeScore}\n👥 ${jogo.away_team.name} - ${awayScore}\n\n\n`;
+                                                }
+                                              }
+                              
+                                              if (proximosJogos.length > 0) {
+                                                listaJogos += '🔜 Próximos jogos:\n';
+                                                for (const jogo of proximosJogos) {
+                                                    listaJogos += `ID: ${jogo.id}\n⚽️Jogo: ${jogo.name}\n 📅 Data: ${jogo.start_at}\n🏆 Competição: ${jogo.season.name}\n👥 ${jogo.home_team.name}\n👥 ${jogo.away_team.name}\n\n`;
+                                                }
+                                              }
+                              
+                                              client.reply(from, listaJogos, id);
+                                            } else {
+                                              client.reply(from, 'Não foram encontrados jogos para o time.', id);
+                                            }
+                                          })
+                                          .catch((error) => {
+                                            console.error('Erro ao buscar os jogos do time:', error);
+                                            client.reply(from, 'Não foi possível buscar os jogos do time no momento.', id);
+                                          });
+                                      } else {
+                                        client.reply(from, 'Time não encontrado.', id);
+                                      }
+                                    })
+                                    .catch((error) => {
+                                      console.error('Erro ao buscar o time:', error);
+                                      client.reply(from, 'Não foi possível buscar o time no momento.', id);
+                                    });
+                                }
+                                break;
+
+                            
+                                case '!jogosdodia':
+                                    if (args.length < 2) {
+                                      client.reply(from, 'Uso incorreto! Utilize o comando da seguinte forma: !jogosdodia <data>', id);
+                                    } else {
+                                      const data = args[1]; // Obtém a data digitada pelo usuário
+                                      try {
+                                        const jogos = await api.obterJogosDaData(data);
+                                  
+                                        if (jogos.length > 0) {
+                                          let resposta = `⚽️ Jogos do dia ${data} ⚽️\n\n`;
+                                          for (const jogo of jogos) {
+                                            resposta += `🏆 Liga: ${jogo.league.name}\n`;
+                                            resposta += `🌍 País: ${jogo.section.name}\n`;
+                                            resposta += `🏠 Time da Casa: ${jogo.home_team.name} - ${jogo.home_score.normal_time}\n`;
+                                            resposta += `🏢 Time Visitante: ${jogo.away_team.name} - ${jogo.away_score.normal_time}\n`;
+                                            resposta += `⚔️ Status: ${jogo.status}\n`;
+                                          }
+                                          client.reply(from, resposta, id);
+                                        } else {
+                                          client.reply(from, 'Nenhum jogo encontrado para a data especificada.', id);
+                                        }
+                                      } catch (error) {
+                                        console.error('Erro ao buscar os jogos:', error);
+                                        client.reply(from, 'Não foi possível buscar os jogos no momento.', id);
+                                      }
+                                    }
+                                    break;
+
+                              
+
+                          
+
+
+
+
+
+
+
+
+                //--------------------FUTEBOL--------------------         
             // obterCartasContraHu : async()=>{
             //     try {
             //         let github_gist_cartas = await axios.get("https://gist.githubusercontent.com/victorsouzaleal/bfbafb665a35436acc2310d51d754abb/raw/df5eee4e8abedbf1a18f031873d33f1e34ac338a/cartas.json")

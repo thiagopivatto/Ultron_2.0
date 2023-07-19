@@ -115,7 +115,12 @@
         "!jacometro",
         "!bolametro",
         "!fernandometro", 
-        "!vod"
+        "!vod",
+        "!buscatime",
+        "!jogadores",
+        "!infotime",
+        "!partidas",
+        "!jogosdodia"
     ],
     "admin":[
         "!desbloquear",
