@@ -70,7 +70,7 @@ module.exports = grupo = async(client,message) => {
                 //Auto-Sticker
                 resposta += (grupoInfo.autosticker) ? msgs_texto.grupo.status.resposta_variavel.autosticker.on : msgs_texto.grupo.status.resposta_variavel.autosticker.off
                 //Anti-Pornô
-                resposta += (grupoInfo.antiporno) ? msgs_texto.grupo.status.resposta_variavel.antiporno.on : msgs_texto.grupo.status.resposta_variavel.antiporno.off
+                //resposta += (grupoInfo.antiporno) ? msgs_texto.grupo.status.resposta_variavel.antiporno.on : msgs_texto.grupo.status.resposta_variavel.antiporno.off
                 //Anti-Trava
                 resposta += (grupoInfo.antitrava.status) ? criarTexto(msgs_texto.grupo.status.resposta_variavel.antitrava.on, grupoInfo.antitrava.max_caracteres) : msgs_texto.grupo.status.resposta_variavel.antitrava.off
                 //Anti-Link
@@ -213,20 +213,20 @@ module.exports = grupo = async(client,message) => {
                 }
                 break
 
-            case "!aporno":
-                if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin , id)
-                if (!isBotGroupAdmins) return client.reply(from,msgs_texto.permissao.bot_admin, id)
-                var grupoInfo = await db.obterGrupo(groupId)
-                var estadoNovo = !grupoInfo.antiporno
-                if (estadoNovo) {
-                    await db.alterarAntiPorno(groupId, true)
-                    await client.reply(from,  msgs_texto.grupo.antiporno.ligado, id)
-                } else {
-                    await db.alterarAntiPorno(groupId, false)
-                    await client.reply(from,  msgs_texto.grupo.antiporno.desligado, id)
+            // case "!aporno":
+            //     if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin , id)
+            //     if (!isBotGroupAdmins) return client.reply(from,msgs_texto.permissao.bot_admin, id)
+            //     var grupoInfo = await db.obterGrupo(groupId)
+            //     var estadoNovo = !grupoInfo.antiporno
+            //     if (estadoNovo) {
+            //         await db.alterarAntiPorno(groupId, true)
+            //         await client.reply(from,  msgs_texto.grupo.antiporno.ligado, id)
+            //     } else {
+            //         await db.alterarAntiPorno(groupId, false)
+            //         await client.reply(from,  msgs_texto.grupo.antiporno.desligado, id)
 
-                }
-                break
+            //     }
+            //     break
 
             case "!atrava":
                 if (!isGroupAdmins) return client.reply(from, msgs_texto.permissao.apenas_admin , id)
