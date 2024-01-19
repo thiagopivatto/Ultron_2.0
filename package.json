@@ -80,5 +80,8 @@
     "whatsapp-bot",
     "bot",
     "sticker"
-  ]
+  ],
+  "devDependencies": {
+    "npm": "^10.3.0"
+  }
 }

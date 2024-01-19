@@ -76,16 +76,18 @@ async function start(client) {
         if (!await antiTrava(client, message)) return;
         if (!await antiLink(client, message)) return;
         if (!await antiFlood(client, message)) return;
+        if(!await checagemMensagem(client, message)) return
+        await chamadaComando(client, message)
         //if (!await antiPorno(client, message)) return;
-        try {
-          if (simiAtivo) { await handleSimiMessage(client, message, simiAtivo)
-          }else{
-            await checagemMensagem(client, message);
-            await chamadaComando(client, message);
-          }
-        } catch (err) {
-          consoleErro(err);
-        }
+        // try {
+        //   if (simiAtivo) { await handleSimiMessage(client, message, simiAtivo)
+        //   }else{
+        //     await checagemMensagem(client, message);
+        //     await chamadaComando(client, message);
+        //   }
+        // } catch (err) {
+        //   consoleErro(err);
+        // }
       });
 
       // Ouvindo entrada/saida de participantes dos grupos
